@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Machine's Eyes - Rifky Bujana Bisri</title>
+<style>
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    max-width: 680px;
+    margin: 2em auto;
+    padding: 0 1.2em;
+    line-height: 1.6;
+    color: #222;
+    background: #fff;
+  }
+  h1 { font-size: 1.6em; margin-bottom: 0.1em; }
+  h2 { font-size: 1.25em; margin-top: 2em; }
+  p { margin: 0.8em 0; }
+  a { color: #1a0dab; }
+  a:visited { color: #609; }
+  hr { border: none; border-top: 1px solid #ccc; margin: 2.5em 0; }
+  .breadcrumb { font-size: 0.9em; margin-bottom: 1.5em; }
+  .subtitle { color: #555; font-style: italic; }
+  code {
+    font-family: 'Courier New', monospace;
+    background: #f5f5f5;
+    padding: 0.15em 0.35em;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #f5f5f5;
+    padding: 1em;
+    overflow-x: auto;
+    font-size: 0.85em;
+    line-height: 1.5;
+  }
+  pre code { background: none; padding: 0; }
+  img { max-width: 100%; }
+</style>
+</head>
+<body>
+
+<p class="breadcrumb"><a href="../index.html">Rifky Bujana Bisri</a> &rsaquo; Learning: SAM3</p>
+
+<h1>Introduction: Machine's Eyes</h1>
+<p class="subtitle">How does a machine see the world?</p>
+
+<h2>Close your eyes</h2>
+
+<p>
+Suppose you have never seen anything before. No colors, no shapes,
+no faces. You have never watched light bend through glass or noticed
+the way shadows stretch in the afternoon. Now someone hands you a
+sheet of paper covered in millions of tiny numbers, and they tell
+you: this is a photograph.
+</p>
+
+<p>
+That is what it is like to be a machine looking at an image for
+the first time. No intuition. No memory of what a tree looks like
+or how a smile feels. Just a grid of numbers. 1,920 columns,
+1,080 rows. Three values per cell: red, green, blue. About 6.2
+million numbers, and nothing else.
+</p>
+
+<p>
+Everything the machine will ever know about that image has to come
+from those numbers alone.
+</p>
+
+<h2>Run your fingers across the grid</h2>
+
+<p>
+Picture running your fingers across that grid, feeling for
+patterns. Here, the numbers change sharply from dark to light. That
+is an edge. Over there, they ripple gently in a repeating rhythm.
+That is a texture. In this corner, a cluster of similar values sits
+quietly together. That might be a patch of sky.
+</p>
+
+<p>
+This is what the earliest layers of a vision model do. They slide
+small filters across the image, each one sensitive to a different
+kind of local pattern. One filter wakes up at horizontal edges.
+Another responds to vertical ones. Another notices a particular
+color gradient. Each filter produces a new map of the image,
+highlighting where its pattern lives.
+</p>
+
+<p>
+Think of it as learning to read Braille for the first time, but
+with millions of dots, and no teacher to tell you what the letters
+are. The model has to discover the alphabet on its own.
+</p>
+
+<h2>Step back</h2>
+
+<p>
+Now pull away. The edges start to connect. A curve here, a corner
+there. Two curves and a shadow become an eye. Four edges become a
+window frame. A circle of texture becomes a wheel.
+</p>
+
+<p>
+This is what happens in the deeper layers. The model combines its
+small discoveries into larger ones. Edges become shapes. Shapes
+become parts. Parts become whole objects. Nobody tells the model
+to organize itself this way. It simply emerges, the same way a
+child learns that two eyes and a mouth make a face, not because
+someone explained it, but because they saw enough faces.
+</p>
+
+<h2>The hardest question</h2>
+
+<p>
+Looking at a photograph and saying "there is a cat in this image"
+is one thing. Looking at the same photograph and drawing a perfect
+outline around every single hair on that cat, separating it from
+the table it sits on, from the wall behind it, pixel by pixel, is
+something else entirely.
+</p>
+
+<p>
+That is segmentation. For every one of those 6.2 million numbers,
+the model must answer: what does this pixel belong to? The cat's
+ear or the shadow beneath it? The edge of the table or the
+background?
+</p>
+
+<p>
+To do this, the model needs two things at once. It needs to zoom in
+close enough to trace exact boundaries. And it needs to zoom out
+far enough to understand what it is looking at. That tension, between
+the microscope and the telescope, is what makes segmentation
+beautiful and difficult. It is exactly what SAM was built to solve.
+</p>
+
+<h2>What comes next</h2>
+
+<p>
+Before we open up SAM3's architecture and look at every piece, sit
+with this for a moment. An image is just a grid of numbers. A model
+is just a stack of filters learning to see. And somewhere in between
+the raw numbers and the final mask, something remarkable happens.
+The machine begins to see.
+</p>
+
+<p>
+Everything that follows in this series builds on that idea.
+</p>
+
+<hr>
+
+<p><a href="../index.html">&larr; Back to home</a></p>
+
+</body>
+</html>
