@@ -3,8 +3,35 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>What is SAM3? - Rifky Bujana Bisri</title>
+<title>What is SAM3? — Rifky Bujana Bisri</title>
+<meta name="description" content="SAM3 can segment any object you can name. From click-based SAM1 to video-tracking SAM2 to text-prompted SAM3, how Meta's Segment Anything Model evolved.">
+<link rel="canonical" href="https://rifkybujana.github.io/sam3/02-what-is-sam3.html">
+<link rel="prev" href="https://rifkybujana.github.io/sam3/01-machines-eyes.html">
+<link rel="next" href="https://rifkybujana.github.io/sam3/03-tokenizer.html">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%231a0dab'/><text x='50' y='68' font-family='Georgia,serif' font-size='52' font-weight='bold' fill='white' text-anchor='middle'>RB</text></svg>">
+<meta property="og:title" content="What is SAM3? — Rifky Bujana Bisri">
+<meta property="og:description" content="SAM3 can segment any object you can name. From click-based SAM1 to video-tracking SAM2 to text-prompted SAM3, how Meta's Segment Anything Model evolved.">
+<meta property="og:url" content="https://rifkybujana.github.io/sam3/02-what-is-sam3.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Rifky Bujana Bisri">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="What is SAM3? — Rifky Bujana Bisri">
+<meta name="twitter:description" content="SAM3 can segment any object you can name. From click-based SAM1 to video-tracking SAM2 to text-prompted SAM3, how Meta's Segment Anything Model evolved.">
 <style>
+  :root {
+    --bg: #ffffff; --bg2: #f9f8f6;
+    --text: #222; --text2: #666; --text3: #999;
+    --border: #ddd;
+    --blue: #4A7FB5; --blue-bg: #EFF5FA; --blue-border: #A8C8E8; --blue-text: #2C5F8A;
+    --teal: #3D8B74; --teal-bg: #EDF5F1; --teal-border: #8DC5B0; --teal-text: #2A6B55;
+    --coral: #B85C3E; --coral-bg: #FBF1EC; --coral-border: #DDA68E; --coral-text: #8A4028;
+    --amber: #9B7420; --amber-bg: #FBF6EA; --amber-border: #D4B56A; --amber-text: #745518;
+    --purple: #7B6DB5; --purple-bg: #F3F1FA; --purple-border: #B5ADDA; --purple-text: #5A4E8A;
+    --green: #5A8A2F; --green-bg: #F0F5E9; --green-border: #A3C87A; --green-text: #3D6A18;
+    --pink: #A35068; --pink-bg: #FBF1F4; --pink-border: #D8A0B4; --pink-text: #7A3850;
+    --gray: #777; --gray-bg: #F4F3F0; --gray-border: #C5C3BB; --gray-text: #555;
+    --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+  }
   body {
     font-family: Georgia, 'Times New Roman', serif;
     max-width: 680px;
@@ -36,12 +63,131 @@
     line-height: 1.5;
   }
   pre code { background: none; padding: 0; }
+
+  /* Architecture diagram styles */
+  .arch-section { margin-top: 1.2em; }
+  .arch-section svg text { font-family: var(--mono); }
+  .arch-label {
+    font-family: var(--mono);
+    font-size: 0.75em;
+    color: var(--text2);
+    font-weight: normal;
+  }
+  .arch-scales {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .arch-scale-box {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    flex: 1;
+    min-width: 130px;
+    text-align: center;
+  }
+  .arch-scale-box .label {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .arch-scale-box .shape {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+  }
+  .arch-tag {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    vertical-align: middle;
+    margin-left: 4px;
+  }
+  .arch-tag-teal { background: var(--teal-bg); color: var(--teal-text); border: 1px solid var(--teal-border); }
+  .arch-tag-blue { background: var(--blue-bg); color: var(--blue-text); border: 1px solid var(--blue-border); }
+  .arch-tag-gray { background: var(--gray-bg); color: var(--gray-text); border: 1px solid var(--gray-border); }
+  .arch-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  @media (max-width: 600px) { .arch-grid { grid-template-columns: 1fr; } }
+  .arch-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+  .arch-card .title {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .arch-card .detail {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text2);
+    line-height: 1.8;
+  }
+  .arch-kv {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2px 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.8;
+  }
+  .arch-kv .k { color: var(--text2); }
+  .arch-kv .v { color: var(--text); }
+  .arch-perf-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  @media (max-width: 600px) { .arch-perf-grid { grid-template-columns: 1fr; } }
+  .arch-perf-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+  .arch-perf-card .title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .arch-perf-card .detail {
+    font-size: 10px;
+    color: var(--text2);
+  }
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "What is SAM3? — The Model That Learned to See Anything You Can Name",
+  "description": "SAM3 can segment any object you can name. From click-based SAM1 to video-tracking SAM2 to text-prompted SAM3, how Meta's Segment Anything Model evolved.",
+  "author": {
+    "@type": "Person",
+    "name": "Rifky Bujana Bisri",
+    "url": "https://rifkybujana.github.io"
+  },
+  "datePublished": "2025-12-15",
+  "dateModified": "2026-04-12",
+  "url": "https://rifkybujana.github.io/sam3/02-what-is-sam3.html"
+}
+</script>
 </head>
 <body>
 
-<p class="breadcrumb"><a href="../index.html">Rifky Bujana Bisri</a> &rsaquo; Learning: SAM3</p>
+<nav class="breadcrumb"><a href="../index.html">Rifky Bujana Bisri</a> &rsaquo; Learning: SAM3</nav>
 
+<main>
+<article>
 <h1>What is SAM3?</h1>
 <p class="subtitle">The model that learned to see anything you can name.</p>
 
@@ -97,58 +243,649 @@ think of. "The striped red umbrella." "A person wearing a black coat
 and a white hat." The vocabulary is open.
 </p>
 
+<p>
+To learn this open vocabulary, Meta trained SAM 3 on SA-Co, their
+largest segmentation dataset: 4 million unique concept labels,
+including hard negatives where similar-looking objects have different
+names. The data engine behind SA-Co is itself interesting. It uses
+Llama-based models to propose diverse noun phrases, multimodal LLMs
+to verify mask quality, and active mining to focus human effort on
+the cases where AI still struggles.
+</p>
+
 <h2>How it works, briefly</h2>
 
 <p>
-Under the hood, SAM 3 has two main pieces sharing a single backbone.
-The first is an image-level detector that finds objects matching your
-prompt. The second is a memory-based video tracker that follows those
-objects across frames. A key design choice is the presence head, which
-decouples recognition ("is this thing here?") from localization
-("where exactly is it?"). That separation turns out to matter a lot
-for accuracy.
+Under the hood, SAM 3 has two main pieces sharing a single vision
+backbone. The first is an image-level detector that finds objects
+matching your prompt. The second is a memory-based video tracker that
+follows those objects across frames. A key design choice is the
+presence head, which separates recognition ("is this thing here?")
+from localization ("where exactly is it?"). That separation turns out
+to matter a lot for accuracy.
 </p>
 
 <p>
-The model was trained on SA-Co, Meta's largest segmentation dataset,
-with 4 million unique concept labels including hard negatives. The
-data engine that produced this dataset is itself interesting: it uses
-Llama-based models to propose diverse noun phrases, fine-tuned
-multimodal LLMs to verify mask quality, and active mining to focus
-human effort on the cases where AI still struggles.
+The rest of this chapter traces the architecture step by step, from
+raw pixels to final masks. The diagrams below reflect the actual C
+implementation in <a href="https://github.com/rifkybujana/sam3.c">SAM3.c</a>.
 </p>
 
+<hr>
+
+<h2>The full pipeline</h2>
+
 <p>
-On a single NVIDIA H200 GPU, SAM 3 can process an image with over
-100 detectable objects in about 30 milliseconds. It doubles the
-accuracy of existing systems in both image and video concept
-segmentation while keeping everything SAM 2 could already do.
+Here is the complete picture. An image enters from the left, a text
+prompt from the right. They pass through parallel encoders, meet in
+the middle through cross-attention, and masks come out at the bottom.
+</p>
+
+<div class="arch-section">
+<svg width="100%" viewBox="0 0 800 760">
+  <!-- INPUT -->
+  <defs><clipPath id="img-clip"><rect x="12" y="12" width="86" height="86" rx="7"/></clipPath></defs>
+  <rect x="10" y="10" width="90" height="90" rx="8" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width="1"/>
+  <image href="../assets/cat.png" x="12" y="12" width="86" height="86" clip-path="url(#img-clip)" preserveAspectRatio="xMidYMid slice"/>
+  <text x="55" y="116" text-anchor="middle" fill="var(--text3)" font-size="9">[H, W, 3] uint8</text>
+  <line x1="106" y1="55" x2="134" y2="55" stroke="var(--text3)" stroke-width="1"/><polygon points="131,51 138,55 131,59" fill="var(--text3)"/>
+  <rect x="140" y="35" width="90" height="40" rx="6" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="185" y="52" text-anchor="middle" fill="var(--gray-text)" font-size="9" font-weight="600">letterbox</text>
+  <text x="185" y="65" text-anchor="middle" fill="var(--text3)" font-size="8">norm [-1,1]</text>
+  <line x1="234" y1="55" x2="258" y2="55" stroke="var(--text3)" stroke-width="1"/><polygon points="255,51 262,55 255,59" fill="var(--text3)"/>
+  <rect x="264" y="23" width="80" height="64" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <rect x="264" y="23" width="16" height="16" fill="var(--blue)" opacity=".08"/><rect x="280" y="23" width="16" height="16" fill="var(--blue)" opacity=".15"/><rect x="296" y="23" width="16" height="16" fill="var(--blue)" opacity=".22"/><rect x="312" y="23" width="16" height="16" fill="var(--blue)" opacity=".1"/><rect x="328" y="23" width="16" height="16" fill="var(--blue)" opacity=".18"/>
+  <rect x="264" y="39" width="16" height="16" fill="var(--blue)" opacity=".2"/><rect x="280" y="39" width="16" height="16" fill="var(--blue)" opacity=".12"/><rect x="296" y="39" width="16" height="16" fill="var(--blue)" opacity=".3"/><rect x="312" y="39" width="16" height="16" fill="var(--blue)" opacity=".08"/><rect x="328" y="39" width="16" height="16" fill="var(--blue)" opacity=".25"/>
+  <rect x="264" y="55" width="16" height="16" fill="var(--blue)" opacity=".14"/><rect x="280" y="55" width="16" height="16" fill="var(--blue)" opacity=".28"/><rect x="296" y="55" width="16" height="16" fill="var(--blue)" opacity=".06"/><rect x="312" y="55" width="16" height="16" fill="var(--blue)" opacity=".2"/><rect x="328" y="55" width="16" height="16" fill="var(--blue)" opacity=".1"/>
+  <rect x="264" y="71" width="16" height="16" fill="var(--blue)" opacity=".1"/><rect x="280" y="71" width="16" height="16" fill="var(--blue)" opacity=".06"/><rect x="296" y="71" width="16" height="16" fill="var(--blue)" opacity=".18"/><rect x="312" y="71" width="16" height="16" fill="var(--blue)" opacity=".25"/><rect x="328" y="71" width="16" height="16" fill="var(--blue)" opacity=".12"/>
+  <rect x="264" y="23" width="80" height="64" rx="4" fill="none" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="304" y="102" text-anchor="middle" fill="var(--blue-text)" font-size="9" font-weight="500">[3, 1008, 1008]</text>
+
+  <!-- Text path -->
+  <rect x="530" y="14" width="110" height="32" rx="6" fill="var(--amber-bg)" stroke="var(--amber-border)" stroke-width=".5"/>
+  <text x="585" y="34" text-anchor="middle" fill="var(--amber-text)" font-size="10" font-weight="600">"a cat"</text>
+  <line x1="585" y1="46" x2="585" y2="62" stroke="var(--text3)" stroke-width="1"/><polygon points="581,59 585,66 589,59" fill="var(--text3)"/>
+  <rect x="522" y="68" width="112" height="16" rx="3" fill="var(--amber-bg)" stroke="var(--amber-border)" stroke-width=".5"/>
+  <rect x="522" y="68" width="16" height="16" fill="var(--amber)" opacity=".3"/><rect x="538" y="68" width="16" height="16" fill="var(--amber)" opacity=".15"/><rect x="554" y="68" width="16" height="16" fill="var(--amber)" opacity=".2"/><rect x="570" y="68" width="16" height="16" fill="var(--amber)" opacity=".25"/><rect x="586" y="68" width="16" height="16" fill="var(--amber)" opacity=".05"/><rect x="602" y="68" width="16" height="16" fill="var(--amber)" opacity=".05"/><rect x="618" y="68" width="16" height="16" fill="var(--amber)" opacity=".03"/>
+  <text x="530" y="80" text-anchor="middle" fill="var(--amber-text)" font-size="6">SOT</text><text x="546" y="80" text-anchor="middle" fill="var(--amber-text)" font-size="6">320</text><text x="562" y="80" text-anchor="middle" fill="var(--amber-text)" font-size="6">2368</text><text x="578" y="80" text-anchor="middle" fill="var(--amber-text)" font-size="6">EOT</text><text x="594" y="80" text-anchor="middle" fill="var(--text3)" font-size="6">0</text><text x="610" y="80" text-anchor="middle" fill="var(--text3)" font-size="6">0</text><text x="626" y="80" text-anchor="middle" fill="var(--text3)" font-size="6">...</text>
+  <rect x="522" y="68" width="112" height="16" rx="3" fill="none" stroke="var(--amber-border)" stroke-width=".5"/>
+  <text x="578" y="98" text-anchor="middle" fill="var(--text3)" font-size="8">[1, 32] i32</text>
+
+  <!-- ViT + Text Encoder -->
+  <line x1="304" y1="104" x2="304" y2="124" stroke="var(--text3)" stroke-width="1"/><polygon points="300,121 304,128 308,121" fill="var(--text3)"/>
+  <line x1="578" y1="100" x2="578" y2="124" stroke="var(--text3)" stroke-width="1"/><polygon points="574,121 578,128 582,121" fill="var(--text3)"/>
+  <rect x="194" y="130" width="220" height="48" rx="8" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width="1"/>
+  <text x="304" y="150" text-anchor="middle" fill="var(--blue-text)" font-size="11" font-weight="600">sam3_vit  32 blocks</text>
+  <text x="304" y="166" text-anchor="middle" fill="var(--text3)" font-size="9">conv2d k=14 . windowed+global attn . RoPE</text>
+  <rect x="488" y="130" width="180" height="48" rx="8" fill="var(--amber-bg)" stroke="var(--amber-border)" stroke-width="1"/>
+  <text x="578" y="150" text-anchor="middle" fill="var(--amber-text)" font-size="11" font-weight="600">sam3_text_encoder  24L</text>
+  <text x="578" y="166" text-anchor="middle" fill="var(--text3)" font-size="9">CLIP 1024 to 256 . async worker</text>
+
+  <!-- ViT output -->
+  <line x1="304" y1="178" x2="304" y2="198" stroke="var(--text3)" stroke-width="1"/><polygon points="300,195 304,202 308,195" fill="var(--text3)"/>
+  <rect x="234" y="204" width="70" height="70" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <rect x="234" y="204" width="14" height="14" fill="var(--blue)" opacity=".12"/><rect x="248" y="204" width="14" height="14" fill="var(--blue)" opacity=".2"/><rect x="262" y="204" width="14" height="14" fill="var(--blue)" opacity=".08"/><rect x="276" y="204" width="14" height="14" fill="var(--blue)" opacity=".25"/><rect x="290" y="204" width="14" height="14" fill="var(--blue)" opacity=".15"/>
+  <rect x="234" y="218" width="14" height="14" fill="var(--blue)" opacity=".18"/><rect x="248" y="218" width="14" height="14" fill="var(--blue)" opacity=".06"/><rect x="262" y="218" width="14" height="14" fill="var(--blue)" opacity=".3"/><rect x="276" y="218" width="14" height="14" fill="var(--blue)" opacity=".1"/><rect x="290" y="218" width="14" height="14" fill="var(--blue)" opacity=".22"/>
+  <rect x="234" y="232" width="14" height="14" fill="var(--blue)" opacity=".1"/><rect x="248" y="232" width="14" height="14" fill="var(--blue)" opacity=".28"/><rect x="262" y="232" width="14" height="14" fill="var(--blue)" opacity=".15"/><rect x="276" y="232" width="14" height="14" fill="var(--blue)" opacity=".08"/><rect x="290" y="232" width="14" height="14" fill="var(--blue)" opacity=".2"/>
+  <rect x="234" y="246" width="14" height="14" fill="var(--blue)" opacity=".25"/><rect x="248" y="246" width="14" height="14" fill="var(--blue)" opacity=".12"/><rect x="262" y="246" width="14" height="14" fill="var(--blue)" opacity=".2"/><rect x="276" y="246" width="14" height="14" fill="var(--blue)" opacity=".3"/><rect x="290" y="246" width="14" height="14" fill="var(--blue)" opacity=".06"/>
+  <rect x="234" y="260" width="14" height="14" fill="var(--blue)" opacity=".15"/><rect x="248" y="260" width="14" height="14" fill="var(--blue)" opacity=".22"/><rect x="262" y="260" width="14" height="14" fill="var(--blue)" opacity=".08"/><rect x="276" y="260" width="14" height="14" fill="var(--blue)" opacity=".18"/><rect x="290" y="260" width="14" height="14" fill="var(--blue)" opacity=".12"/>
+  <rect x="234" y="204" width="70" height="70" rx="4" fill="none" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="269" y="290" text-anchor="middle" fill="var(--blue-text)" font-size="9" font-weight="500">[5184, 1024]</text>
+
+  <!-- Text output -->
+  <line x1="578" y1="178" x2="578" y2="198" stroke="var(--text3)" stroke-width="1"/><polygon points="574,195 578,202 582,195" fill="var(--text3)"/>
+  <rect x="522" y="204" width="56" height="70" rx="4" fill="var(--amber-bg)" stroke="var(--amber-border)" stroke-width=".5"/>
+  <rect x="522" y="204" width="14" height="14" fill="var(--amber)" opacity=".15"/><rect x="536" y="204" width="14" height="14" fill="var(--amber)" opacity=".25"/><rect x="550" y="204" width="14" height="14" fill="var(--amber)" opacity=".1"/><rect x="564" y="204" width="14" height="14" fill="var(--amber)" opacity=".2"/>
+  <rect x="522" y="218" width="14" height="14" fill="var(--amber)" opacity=".2"/><rect x="536" y="218" width="14" height="14" fill="var(--amber)" opacity=".1"/><rect x="550" y="218" width="14" height="14" fill="var(--amber)" opacity=".3"/><rect x="564" y="218" width="14" height="14" fill="var(--amber)" opacity=".12"/>
+  <rect x="522" y="232" width="14" height="14" fill="var(--amber)" opacity=".08"/><rect x="536" y="232" width="14" height="14" fill="var(--amber)" opacity=".2"/><rect x="550" y="232" width="14" height="14" fill="var(--amber)" opacity=".15"/><rect x="564" y="232" width="14" height="14" fill="var(--amber)" opacity=".25"/>
+  <rect x="522" y="246" width="14" height="14" fill="var(--amber)" opacity=".22"/><rect x="536" y="246" width="14" height="14" fill="var(--amber)" opacity=".15"/><rect x="550" y="246" width="14" height="14" fill="var(--amber)" opacity=".08"/><rect x="564" y="246" width="14" height="14" fill="var(--amber)" opacity=".18"/>
+  <rect x="522" y="260" width="14" height="14" fill="var(--amber)" opacity=".1"/><rect x="536" y="260" width="14" height="14" fill="var(--amber)" opacity=".28"/><rect x="550" y="260" width="14" height="14" fill="var(--amber)" opacity=".2"/><rect x="564" y="260" width="14" height="14" fill="var(--amber)" opacity=".12"/>
+  <rect x="522" y="204" width="56" height="70" rx="4" fill="none" stroke="var(--amber-border)" stroke-width=".5"/>
+  <text x="550" y="290" text-anchor="middle" fill="var(--amber-text)" font-size="9" font-weight="500">[32, 256]</text>
+
+  <!-- NECK -->
+  <line x1="269" y1="292" x2="269" y2="310" stroke="var(--text3)" stroke-width="1"/><polygon points="265,307 269,314 273,307" fill="var(--text3)"/>
+  <rect x="120" y="316" width="360" height="44" rx="8" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width="1"/>
+  <text x="300" y="334" text-anchor="middle" fill="var(--teal-text)" font-size="11" font-weight="600">sam3_neck  feature pyramid</text>
+  <text x="300" y="348" text-anchor="middle" fill="var(--text3)" font-size="9">1024 to 256 . 4 scales: 288sq . 144sq . 72sq . 36sq</text>
+
+  <!-- Neck output scales -->
+  <line x1="300" y1="360" x2="300" y2="370" stroke="var(--text3)" stroke-width="1"/>
+  <line x1="300" y1="370" x2="80" y2="370" stroke="var(--text3)" stroke-width=".5"/><line x1="300" y1="370" x2="220" y2="370" stroke="var(--text3)" stroke-width=".5"/><line x1="300" y1="370" x2="370" y2="370" stroke="var(--text3)" stroke-width=".5"/><line x1="300" y1="370" x2="470" y2="370" stroke="var(--text3)" stroke-width=".5"/>
+  <line x1="80" y1="370" x2="80" y2="378" stroke="var(--text3)" stroke-width=".5"/><line x1="220" y1="370" x2="220" y2="378" stroke="var(--text3)" stroke-width=".5"/><line x1="370" y1="370" x2="370" y2="378" stroke="var(--text3)" stroke-width=".5"/><line x1="470" y1="370" x2="470" y2="378" stroke="var(--text3)" stroke-width=".5"/>
+  <polygon points="76,375 80,382 84,375" fill="var(--text3)"/><polygon points="216,375 220,382 224,375" fill="var(--text3)"/><polygon points="366,375 370,382 374,375" fill="var(--text3)"/><polygon points="466,375 470,382 474,375" fill="var(--text3)"/>
+  <!-- s0 4x -->
+  <rect x="55" y="384" width="50" height="50" rx="4" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width=".5"/>
+  <rect x="55" y="384" width="10" height="10" fill="var(--teal)" opacity=".15"/><rect x="65" y="384" width="10" height="10" fill="var(--teal)" opacity=".25"/><rect x="75" y="384" width="10" height="10" fill="var(--teal)" opacity=".3"/><rect x="85" y="384" width="10" height="10" fill="var(--teal)" opacity=".1"/><rect x="95" y="384" width="10" height="10" fill="var(--teal)" opacity=".2"/>
+  <rect x="55" y="394" width="10" height="10" fill="var(--teal)" opacity=".2"/><rect x="65" y="394" width="10" height="10" fill="var(--teal)" opacity=".1"/><rect x="75" y="394" width="10" height="10" fill="var(--teal)" opacity=".35"/><rect x="85" y="394" width="10" height="10" fill="var(--teal)" opacity=".15"/><rect x="95" y="394" width="10" height="10" fill="var(--teal)" opacity=".3"/>
+  <rect x="55" y="404" width="10" height="10" fill="var(--teal)" opacity=".3"/><rect x="65" y="404" width="10" height="10" fill="var(--teal)" opacity=".2"/><rect x="75" y="404" width="10" height="10" fill="var(--teal)" opacity=".1"/><rect x="85" y="404" width="10" height="10" fill="var(--teal)" opacity=".25"/><rect x="95" y="404" width="10" height="10" fill="var(--teal)" opacity=".15"/>
+  <rect x="55" y="414" width="10" height="10" fill="var(--teal)" opacity=".1"/><rect x="65" y="414" width="10" height="10" fill="var(--teal)" opacity=".3"/><rect x="75" y="414" width="10" height="10" fill="var(--teal)" opacity=".2"/><rect x="85" y="414" width="10" height="10" fill="var(--teal)" opacity=".15"/><rect x="95" y="414" width="10" height="10" fill="var(--teal)" opacity=".25"/>
+  <rect x="55" y="424" width="10" height="10" fill="var(--teal)" opacity=".25"/><rect x="65" y="424" width="10" height="10" fill="var(--teal)" opacity=".15"/><rect x="75" y="424" width="10" height="10" fill="var(--teal)" opacity=".25"/><rect x="85" y="424" width="10" height="10" fill="var(--teal)" opacity=".3"/><rect x="95" y="424" width="10" height="10" fill="var(--teal)" opacity=".1"/>
+  <rect x="55" y="384" width="50" height="50" rx="4" fill="none" stroke="var(--teal-border)" stroke-width=".5"/>
+  <text x="80" y="448" text-anchor="middle" fill="var(--teal-text)" font-size="8" font-weight="500">4x [288sq]</text>
+  <!-- s1 2x -->
+  <rect x="202" y="386" width="36" height="36" rx="3" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width=".5"/>
+  <rect x="202" y="386" width="9" height="9" fill="var(--teal)" opacity=".2"/><rect x="211" y="386" width="9" height="9" fill="var(--teal)" opacity=".3"/><rect x="220" y="386" width="9" height="9" fill="var(--teal)" opacity=".1"/><rect x="229" y="386" width="9" height="9" fill="var(--teal)" opacity=".25"/>
+  <rect x="202" y="395" width="9" height="9" fill="var(--teal)" opacity=".15"/><rect x="211" y="395" width="9" height="9" fill="var(--teal)" opacity=".1"/><rect x="220" y="395" width="9" height="9" fill="var(--teal)" opacity=".35"/><rect x="229" y="395" width="9" height="9" fill="var(--teal)" opacity=".2"/>
+  <rect x="202" y="404" width="9" height="9" fill="var(--teal)" opacity=".3"/><rect x="211" y="404" width="9" height="9" fill="var(--teal)" opacity=".2"/><rect x="220" y="404" width="9" height="9" fill="var(--teal)" opacity=".15"/><rect x="229" y="404" width="9" height="9" fill="var(--teal)" opacity=".1"/>
+  <rect x="202" y="413" width="9" height="9" fill="var(--teal)" opacity=".1"/><rect x="211" y="413" width="9" height="9" fill="var(--teal)" opacity=".25"/><rect x="220" y="413" width="9" height="9" fill="var(--teal)" opacity=".2"/><rect x="229" y="413" width="9" height="9" fill="var(--teal)" opacity=".3"/>
+  <rect x="202" y="386" width="36" height="36" rx="3" fill="none" stroke="var(--teal-border)" stroke-width=".5"/>
+  <text x="220" y="436" text-anchor="middle" fill="var(--teal-text)" font-size="8" font-weight="500">2x [144sq]</text>
+  <!-- s2 1x -->
+  <rect x="346" y="388" width="24" height="24" rx="3" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width="1"/>
+  <rect x="346" y="388" width="8" height="8" fill="var(--teal)" opacity=".3"/><rect x="354" y="388" width="8" height="8" fill="var(--teal)" opacity=".2"/><rect x="362" y="388" width="8" height="8" fill="var(--teal)" opacity=".15"/>
+  <rect x="346" y="396" width="8" height="8" fill="var(--teal)" opacity=".1"/><rect x="354" y="396" width="8" height="8" fill="var(--teal)" opacity=".35"/><rect x="362" y="396" width="8" height="8" fill="var(--teal)" opacity=".2"/>
+  <rect x="346" y="404" width="8" height="8" fill="var(--teal)" opacity=".25"/><rect x="354" y="404" width="8" height="8" fill="var(--teal)" opacity=".15"/><rect x="362" y="404" width="8" height="8" fill="var(--teal)" opacity=".3"/>
+  <rect x="346" y="388" width="24" height="24" rx="3" fill="none" stroke="var(--teal-border)" stroke-width="1"/>
+  <text x="358" y="428" text-anchor="middle" fill="var(--teal-text)" font-size="8" font-weight="600">1x [72sq]</text>
+  <!-- s3 0.5x -->
+  <rect x="456" y="390" width="14" height="14" rx="2" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5" opacity=".5"/>
+  <rect x="456" y="390" width="7" height="7" fill="var(--gray)" opacity=".1"/><rect x="463" y="390" width="7" height="7" fill="var(--gray)" opacity=".15"/>
+  <rect x="456" y="397" width="7" height="7" fill="var(--gray)" opacity=".08"/><rect x="463" y="397" width="7" height="7" fill="var(--gray)" opacity=".12"/>
+  <rect x="456" y="390" width="14" height="14" rx="2" fill="none" stroke="var(--gray-border)" stroke-width=".5" opacity=".5"/>
+  <text x="463" y="420" text-anchor="middle" fill="var(--text3)" font-size="8" font-weight="500">1/2x [36sq]</text>
+
+  <!-- ENCODER FUSION -->
+  <line x1="358" y1="440" x2="358" y2="460" stroke="var(--text3)" stroke-width="1"/><polygon points="354,457 358,464 362,457" fill="var(--text3)"/>
+  <line x1="550" y1="292" x2="550" y2="440" stroke="var(--text3)" stroke-width=".5" stroke-dasharray="4 3"/>
+  <line x1="550" y1="440" x2="500" y2="468" stroke="var(--text3)" stroke-width="1"/><polygon points="498,464 497,472 505,466" fill="var(--text3)"/>
+  <rect x="160" y="468" width="380" height="48" rx="8" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width="1"/>
+  <text x="350" y="488" text-anchor="middle" fill="var(--coral-text)" font-size="11" font-weight="600">sam3_encoder_fusion  6 layers</text>
+  <text x="350" y="504" text-anchor="middle" fill="var(--text3)" font-size="9">SA(image) then CA(image Q x text K) then FFN(ReLU, 2048)</text>
+  <text x="370" y="454" fill="var(--text3)" font-size="7">1x main features</text>
+
+  <!-- Skip connections -->
+  <line x1="80" y1="434" x2="80" y2="664" stroke="var(--teal-border)" stroke-width="1" stroke-dasharray="5 3"/>
+  <line x1="80" y1="664" x2="128" y2="664" stroke="var(--teal-border)" stroke-width="1" stroke-dasharray="5 3"/>
+  <polygon points="125,660 132,664 125,668" fill="var(--teal-border)"/>
+  <line x1="220" y1="422" x2="220" y2="658" stroke="var(--teal-border)" stroke-width="1" stroke-dasharray="5 3"/>
+  <polygon points="216,655 220,662 224,655" fill="var(--teal-border)"/>
+  <text x="36" y="560" fill="var(--teal-text)" font-size="7" transform="rotate(-90 36 560)">skip connections (FPN)</text>
+
+  <!-- Fusion output -->
+  <line x1="350" y1="516" x2="350" y2="534" stroke="var(--text3)" stroke-width="1"/><polygon points="346,531 350,538 354,531" fill="var(--text3)"/>
+  <rect x="290" y="540" width="120" height="24" rx="4" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".5"/>
+  <text x="350" y="556" text-anchor="middle" fill="var(--coral-text)" font-size="9" font-weight="500">[5184, 256] fused</text>
+
+  <!-- DECODER -->
+  <line x1="350" y1="564" x2="350" y2="582" stroke="var(--text3)" stroke-width="1"/><polygon points="346,579 350,586 354,579" fill="var(--text3)"/>
+  <rect x="190" y="588" width="320" height="48" rx="8" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width="1"/>
+  <text x="350" y="608" text-anchor="middle" fill="var(--blue-text)" font-size="11" font-weight="600">sam3_decoder  6L . 200 queries</text>
+  <text x="350" y="622" text-anchor="middle" fill="var(--text3)" font-size="9">SA then TCA(text) then CA(vision) then FFN then box MLP</text>
+
+  <!-- MASK PREDICTION -->
+  <line x1="350" y1="636" x2="350" y2="654" stroke="var(--text3)" stroke-width="1"/><polygon points="346,651 350,658 354,651" fill="var(--text3)"/>
+  <rect x="130" y="660" width="440" height="48" rx="8" fill="var(--green-bg)" stroke="var(--green-border)" stroke-width="1"/>
+  <text x="350" y="680" text-anchor="middle" fill="var(--green-text)" font-size="11" font-weight="600">mask_mlp(queries) @ pixel_features</text>
+  <text x="350" y="696" text-anchor="middle" fill="var(--text3)" font-size="9">seg_head (text/box) . mask_decoder (point) . dot_scorer</text>
+
+  <line x1="350" y1="708" x2="350" y2="724" stroke="var(--text3)" stroke-width="1"/><polygon points="346,721 350,728 354,721" fill="var(--text3)"/>
+
+  <!-- Result -->
+  <defs><clipPath id="res-clip"><rect x="274" y="726" width="34" height="34" rx="4"/></clipPath></defs>
+  <rect x="270" y="722" width="160" height="42" rx="6" fill="none" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <image href="../assets/cat.png" x="274" y="726" width="34" height="34" clip-path="url(#res-clip)" preserveAspectRatio="xMidYMid slice"/>
+  <image href="../assets/overlay_0.png" x="274" y="726" width="34" height="34" clip-path="url(#res-clip)" preserveAspectRatio="xMidYMid slice" opacity=".5"/>
+  <text x="360" y="741" text-anchor="middle" fill="var(--text)" font-size="9" font-weight="600">sam3_result</text>
+  <text x="360" y="755" text-anchor="middle" fill="var(--text3)" font-size="7">masks + boxes + iou</text>
+</svg>
+</div>
+
+<p>
+The first thing the model does is chop the image into a grid of small
+squares, like tiles on a mosaic. The image gets resized to 1008 by
+1008 pixels, then a convolution slices it into 72 rows and 72 columns
+of 14-pixel patches. That is 5184 tiles. Each tile gets compressed
+into a list of 1024 numbers that describe what it contains. A
+positional tag is added to each one so the model knows where it
+sits in the grid. These tagged tiles are what the transformer sees.
+</p>
+
+<div class="arch-section">
+<svg width="100%" viewBox="0 0 800 160">
+  <rect x="10" y="10" width="100" height="100" rx="6" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width="1"/>
+  <rect x="14" y="14" width="92" height="92" rx="4" fill="var(--gray)" opacity=".1"/>
+  <line x1="31" y1="11" x2="31" y2="109" stroke="var(--text3)" stroke-width=".4" opacity=".4"/><line x1="51" y1="11" x2="51" y2="109" stroke="var(--text3)" stroke-width=".4" opacity=".4"/><line x1="71" y1="11" x2="71" y2="109" stroke="var(--text3)" stroke-width=".4" opacity=".4"/><line x1="91" y1="11" x2="91" y2="109" stroke="var(--text3)" stroke-width=".4" opacity=".4"/>
+  <line x1="11" y1="31" x2="109" y2="31" stroke="var(--text3)" stroke-width=".4" opacity=".4"/><line x1="11" y1="51" x2="109" y2="51" stroke="var(--text3)" stroke-width=".4" opacity=".4"/><line x1="11" y1="71" x2="109" y2="71" stroke="var(--text3)" stroke-width=".4" opacity=".4"/><line x1="11" y1="91" x2="109" y2="91" stroke="var(--text3)" stroke-width=".4" opacity=".4"/>
+  <text x="60" y="126" text-anchor="middle" fill="var(--text3)" font-size="8">72x72 patches . 14px each</text>
+  <line x1="116" y1="60" x2="150" y2="60" stroke="var(--text3)" stroke-width="1"/><polygon points="147,56 154,60 147,64" fill="var(--text3)"/>
+  <text x="134" y="52" text-anchor="middle" fill="var(--text2)" font-size="8">conv2d</text><text x="134" y="76" text-anchor="middle" fill="var(--text3)" font-size="7">k=14 s=14</text>
+  <rect x="160" y="4" width="112" height="112" rx="5" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <rect x="160" y="4" width="14" height="14" fill="var(--blue)" opacity=".12"/><rect x="174" y="4" width="14" height="14" fill="var(--blue)" opacity=".2"/><rect x="188" y="4" width="14" height="14" fill="var(--blue)" opacity=".08"/><rect x="202" y="4" width="14" height="14" fill="var(--blue)" opacity=".25"/><rect x="216" y="4" width="14" height="14" fill="var(--blue)" opacity=".15"/><rect x="230" y="4" width="14" height="14" fill="var(--blue)" opacity=".1"/><rect x="244" y="4" width="14" height="14" fill="var(--blue)" opacity=".28"/><rect x="258" y="4" width="14" height="14" fill="var(--blue)" opacity=".06"/>
+  <rect x="160" y="18" width="14" height="14" fill="var(--blue)" opacity=".18"/><rect x="174" y="18" width="14" height="14" fill="var(--blue)" opacity=".06"/><rect x="188" y="18" width="14" height="14" fill="var(--blue)" opacity=".3"/><rect x="202" y="18" width="14" height="14" fill="var(--blue)" opacity=".1"/><rect x="216" y="18" width="14" height="14" fill="var(--blue)" opacity=".22"/><rect x="230" y="18" width="14" height="14" fill="var(--blue)" opacity=".15"/><rect x="244" y="18" width="14" height="14" fill="var(--blue)" opacity=".08"/><rect x="258" y="18" width="14" height="14" fill="var(--blue)" opacity=".2"/>
+  <rect x="160" y="32" width="14" height="14" fill="var(--blue)" opacity=".1"/><rect x="174" y="32" width="14" height="14" fill="var(--blue)" opacity=".28"/><rect x="188" y="32" width="14" height="14" fill="var(--blue)" opacity=".15"/><rect x="202" y="32" width="14" height="14" fill="var(--blue)" opacity=".08"/><rect x="216" y="32" width="14" height="14" fill="var(--blue)" opacity=".2"/><rect x="230" y="32" width="14" height="14" fill="var(--blue)" opacity=".3"/><rect x="244" y="32" width="14" height="14" fill="var(--blue)" opacity=".12"/><rect x="258" y="32" width="14" height="14" fill="var(--blue)" opacity=".18"/>
+  <rect x="160" y="46" width="14" height="14" fill="var(--blue)" opacity=".25"/><rect x="174" y="46" width="14" height="14" fill="var(--blue)" opacity=".12"/><rect x="188" y="46" width="14" height="14" fill="var(--blue)" opacity=".2"/><rect x="202" y="46" width="14" height="14" fill="var(--blue)" opacity=".3"/><rect x="216" y="46" width="14" height="14" fill="var(--blue)" opacity=".06"/><rect x="230" y="46" width="14" height="14" fill="var(--blue)" opacity=".22"/><rect x="244" y="46" width="14" height="14" fill="var(--blue)" opacity=".15"/><rect x="258" y="46" width="14" height="14" fill="var(--blue)" opacity=".1"/>
+  <rect x="160" y="60" width="14" height="14" fill="var(--blue)" opacity=".15"/><rect x="174" y="60" width="14" height="14" fill="var(--blue)" opacity=".22"/><rect x="188" y="60" width="14" height="14" fill="var(--blue)" opacity=".08"/><rect x="202" y="60" width="14" height="14" fill="var(--blue)" opacity=".18"/><rect x="216" y="60" width="14" height="14" fill="var(--blue)" opacity=".12"/><rect x="230" y="60" width="14" height="14" fill="var(--blue)" opacity=".25"/><rect x="244" y="60" width="14" height="14" fill="var(--blue)" opacity=".2"/><rect x="258" y="60" width="14" height="14" fill="var(--blue)" opacity=".3"/>
+  <rect x="160" y="74" width="14" height="14" fill="var(--blue)" opacity=".08"/><rect x="174" y="74" width="14" height="14" fill="var(--blue)" opacity=".15"/><rect x="188" y="74" width="14" height="14" fill="var(--blue)" opacity=".25"/><rect x="202" y="74" width="14" height="14" fill="var(--blue)" opacity=".12"/><rect x="216" y="74" width="14" height="14" fill="var(--blue)" opacity=".3"/><rect x="230" y="74" width="14" height="14" fill="var(--blue)" opacity=".06"/><rect x="244" y="74" width="14" height="14" fill="var(--blue)" opacity=".18"/><rect x="258" y="74" width="14" height="14" fill="var(--blue)" opacity=".22"/>
+  <rect x="160" y="88" width="14" height="14" fill="var(--blue)" opacity=".2"/><rect x="174" y="88" width="14" height="14" fill="var(--blue)" opacity=".1"/><rect x="188" y="88" width="14" height="14" fill="var(--blue)" opacity=".18"/><rect x="202" y="88" width="14" height="14" fill="var(--blue)" opacity=".25"/><rect x="216" y="88" width="14" height="14" fill="var(--blue)" opacity=".08"/><rect x="230" y="88" width="14" height="14" fill="var(--blue)" opacity=".15"/><rect x="244" y="88" width="14" height="14" fill="var(--blue)" opacity=".3"/><rect x="258" y="88" width="14" height="14" fill="var(--blue)" opacity=".12"/>
+  <rect x="160" y="102" width="14" height="14" fill="var(--blue)" opacity=".3"/><rect x="174" y="102" width="14" height="14" fill="var(--blue)" opacity=".2"/><rect x="188" y="102" width="14" height="14" fill="var(--blue)" opacity=".12"/><rect x="202" y="102" width="14" height="14" fill="var(--blue)" opacity=".08"/><rect x="216" y="102" width="14" height="14" fill="var(--blue)" opacity=".22"/><rect x="230" y="102" width="14" height="14" fill="var(--blue)" opacity=".18"/><rect x="244" y="102" width="14" height="14" fill="var(--blue)" opacity=".1"/><rect x="258" y="102" width="14" height="14" fill="var(--blue)" opacity=".25"/>
+  <rect x="160" y="4" width="112" height="112" rx="5" fill="none" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="216" y="130" text-anchor="middle" fill="var(--blue-text)" font-size="10" font-weight="500">[5184, 1024]</text>
+  <text x="216" y="144" text-anchor="middle" fill="var(--text3)" font-size="8">each row = 14x14 patch compressed to 1024 dims</text>
+  <line x1="278" y1="60" x2="300" y2="60" stroke="var(--text3)" stroke-width="1"/><text x="289" y="52" text-anchor="middle" fill="var(--text3)" font-size="10">+</text>
+  <rect x="306" y="20" width="80" height="80" rx="4" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width=".5"/>
+  <text x="346" y="56" text-anchor="middle" fill="var(--purple-text)" font-size="9">pos_embed</text>
+  <text x="346" y="72" text-anchor="middle" fill="var(--purple-text)" font-size="8">[5184, 1024]</text>
+  <line x1="390" y1="60" x2="414" y2="60" stroke="var(--text3)" stroke-width="1"/><polygon points="411,56 418,60 411,64" fill="var(--text3)"/>
+  <rect x="422" y="44" width="50" height="32" rx="5" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width=".5"/>
+  <text x="447" y="64" text-anchor="middle" fill="var(--purple-text)" font-size="9">LN</text>
+  <line x1="476" y1="60" x2="500" y2="60" stroke="var(--text3)" stroke-width="1"/><polygon points="497,56 504,60 497,64" fill="var(--text3)"/>
+  <text x="548" y="62" text-anchor="middle" fill="var(--blue-text)" font-size="10" font-weight="600">ViT 32 blocks</text>
+</svg>
+</div>
+
+<p>
+Those 5184 tiles pass through 32 identical transformer blocks, one
+after another. In each block, every tile looks at its neighbors to
+gather context, then runs that context through a small feedforward
+network to refine its own representation. Most blocks use windowed
+attention: each tile only looks at a 24-by-24 neighborhood around it,
+keeping computation manageable. Four special blocks (at positions 7,
+15, 23, and 31) open the window completely, letting every tile see
+every other tile across the full image. By the end, each tile knows
+not just what it contains, but how it relates to the rest of the scene.
+</p>
+
+<div class="arch-section">
+<svg width="100%" viewBox="0 0 800 194">
+  <rect x="4" y="54" width="68" height="26" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="38" y="71" text-anchor="middle" fill="var(--blue-text)" font-size="8" font-weight="600">x [5184,1024]</text>
+
+  <line x1="72" y1="67" x2="84" y2="67" stroke="var(--text3)" stroke-width="1"/><polygon points="81,63 88,67 81,71" fill="var(--text3)"/>
+  <rect x="88" y="55" width="32" height="24" rx="4" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width=".5"/>
+  <text x="104" y="71" text-anchor="middle" fill="var(--purple-text)" font-size="8">LN1</text>
+
+  <line x1="120" y1="67" x2="132" y2="67" stroke="var(--text3)" stroke-width="1"/><polygon points="129,63 136,67 129,71" fill="var(--text3)"/>
+
+  <!-- QKV -->
+  <rect x="136" y="38" width="100" height="58" rx="5" fill="none" stroke="var(--border)" stroke-width="1" stroke-dasharray="5 3"/>
+  <text x="186" y="50" text-anchor="middle" fill="var(--text2)" font-size="7" font-weight="500">QKV projection</text>
+  <rect x="142" y="56" width="18" height="34" rx="2" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".3"/><text x="151" y="76" text-anchor="middle" fill="var(--blue-text)" font-size="6">x</text>
+  <text x="166" y="76" fill="var(--text)" font-size="9">x</text>
+  <rect x="174" y="56" width="14" height="34" rx="2" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".3"/><text x="181" y="76" text-anchor="middle" fill="var(--gray-text)" font-size="6">W</text>
+  <text x="194" y="76" fill="var(--text)" font-size="9">=</text>
+  <rect x="202" y="56" width="14" height="34" rx="2" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".3"/><text x="209" y="76" text-anchor="middle" fill="var(--coral-text)" font-size="5">QKV</text>
+  <text x="224" y="62" fill="var(--text3)" font-size="6">split</text>
+  <line x1="216" y1="67" x2="226" y2="67" stroke="var(--text3)" stroke-width=".5"/>
+
+  <!-- Q, K, V -->
+  <rect x="240" y="42" width="18" height="16" rx="2" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".5"/><text x="249" y="53" text-anchor="middle" fill="var(--coral-text)" font-size="7" font-weight="600">Q</text>
+  <rect x="240" y="60" width="18" height="16" rx="2" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".5"/><text x="249" y="71" text-anchor="middle" fill="var(--coral-text)" font-size="7" font-weight="600">K</text>
+  <rect x="240" y="78" width="18" height="16" rx="2" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".5"/><text x="249" y="89" text-anchor="middle" fill="var(--coral-text)" font-size="7" font-weight="600">V</text>
+
+  <!-- RoPE -->
+  <line x1="258" y1="50" x2="270" y2="50" stroke="var(--text3)" stroke-width=".5"/>
+  <line x1="258" y1="68" x2="270" y2="68" stroke="var(--text3)" stroke-width=".5"/>
+  <rect x="270" y="40" width="30" height="36" rx="4" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width=".5"/>
+  <text x="285" y="62" text-anchor="middle" fill="var(--purple-text)" font-size="7" font-weight="500">RoPE</text>
+
+  <!-- SDPA -->
+  <line x1="300" y1="58" x2="316" y2="58" stroke="var(--text3)" stroke-width="1"/><polygon points="313,54 320,58 313,62" fill="var(--text3)"/>
+  <line x1="258" y1="86" x2="310" y2="86" stroke="var(--text3)" stroke-width=".5"/>
+  <line x1="310" y1="86" x2="310" y2="72" stroke="var(--text3)" stroke-width=".5"/>
+  <line x1="310" y1="72" x2="316" y2="72" stroke="var(--text3)" stroke-width=".5"/>
+  <polygon points="313,68 320,72 313,76" fill="var(--text3)"/>
+
+  <rect x="320" y="34" width="118" height="62" rx="5" fill="none" stroke="var(--border)" stroke-width="1" stroke-dasharray="5 3"/>
+  <text x="379" y="46" text-anchor="middle" fill="var(--text2)" font-size="7" font-weight="500">SDPA (16 heads)</text>
+  <rect x="328" y="54" width="22" height="22" rx="2" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".3"/><text x="339" y="69" text-anchor="middle" fill="var(--coral-text)" font-size="6">QK'</text>
+  <text x="358" y="69" fill="var(--text3)" font-size="8">s</text>
+  <rect x="370" y="54" width="24" height="24" rx="2" fill="var(--coral)" opacity=".04"/>
+  <rect x="370" y="54" width="8" height="8" fill="var(--coral)" opacity=".7"/><rect x="378" y="54" width="8" height="8" fill="var(--coral)" opacity=".1"/><rect x="386" y="54" width="8" height="8" fill="var(--coral)" opacity=".05"/>
+  <rect x="370" y="62" width="8" height="8" fill="var(--coral)" opacity=".15"/><rect x="378" y="62" width="8" height="8" fill="var(--coral)" opacity=".6"/><rect x="386" y="62" width="8" height="8" fill="var(--coral)" opacity=".2"/>
+  <rect x="370" y="70" width="8" height="8" fill="var(--coral)" opacity=".1"/><rect x="378" y="70" width="8" height="8" fill="var(--coral)" opacity=".3"/><rect x="386" y="70" width="8" height="8" fill="var(--coral)" opacity=".5"/>
+  <rect x="370" y="54" width="24" height="24" rx="2" fill="none" stroke="var(--coral-border)" stroke-width=".3"/>
+  <text x="402" y="69" fill="var(--text3)" font-size="7">.V</text>
+
+  <line x1="416" y1="67" x2="450" y2="67" stroke="var(--text3)" stroke-width="1"/><polygon points="447,63 454,67 447,71" fill="var(--text3)"/>
+  <rect x="454" y="55" width="38" height="24" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="473" y="71" text-anchor="middle" fill="var(--blue-text)" font-size="8">proj</text>
+
+  <!-- Residual 1 -->
+  <line x1="492" y1="67" x2="504" y2="67" stroke="var(--text3)" stroke-width="1"/><polygon points="501,63 508,67 501,71" fill="var(--text3)"/>
+  <circle cx="516" cy="67" r="8" fill="none" stroke="var(--text3)" stroke-width="1"/><text x="516" y="71" text-anchor="middle" fill="var(--text3)" font-size="10">+</text>
+  <line x1="38" y1="80" x2="38" y2="120" stroke="var(--text3)" stroke-width=".5" stroke-dasharray="3 2"/>
+  <line x1="38" y1="120" x2="516" y2="120" stroke="var(--text3)" stroke-width=".5" stroke-dasharray="3 2"/>
+  <line x1="516" y1="120" x2="516" y2="79" stroke="var(--text3)" stroke-width=".5" stroke-dasharray="3 2"/>
+  <text x="280" y="132" text-anchor="middle" fill="var(--text3)" font-size="7" font-style="italic">residual 1</text>
+
+  <!-- LN2 + FFN -->
+  <line x1="524" y1="67" x2="536" y2="67" stroke="var(--text3)" stroke-width="1"/><polygon points="533,63 540,67 533,71" fill="var(--text3)"/>
+  <rect x="540" y="55" width="30" height="24" rx="4" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width=".5"/>
+  <text x="555" y="71" text-anchor="middle" fill="var(--purple-text)" font-size="7">LN2</text>
+
+  <line x1="570" y1="67" x2="582" y2="67" stroke="var(--text3)" stroke-width="1"/><polygon points="579,63 586,67 579,71" fill="var(--text3)"/>
+  <rect x="586" y="49" width="76" height="36" rx="5" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width=".5"/>
+  <text x="624" y="65" text-anchor="middle" fill="var(--teal-text)" font-size="8" font-weight="500">FFN (GELU)</text>
+  <text x="624" y="78" text-anchor="middle" fill="var(--text3)" font-size="7">1024, 4736, 1024</text>
+
+  <!-- Residual 2 -->
+  <line x1="662" y1="67" x2="674" y2="67" stroke="var(--text3)" stroke-width="1"/><polygon points="671,63 678,67 671,71" fill="var(--text3)"/>
+  <circle cx="686" cy="67" r="8" fill="none" stroke="var(--text3)" stroke-width="1"/><text x="686" y="71" text-anchor="middle" fill="var(--text3)" font-size="10">+</text>
+  <line x1="516" y1="79" x2="516" y2="148" stroke="var(--text3)" stroke-width=".5" stroke-dasharray="3 2"/>
+  <line x1="516" y1="148" x2="686" y2="148" stroke="var(--text3)" stroke-width=".5" stroke-dasharray="3 2"/>
+  <line x1="686" y1="148" x2="686" y2="79" stroke="var(--text3)" stroke-width=".5" stroke-dasharray="3 2"/>
+  <text x="602" y="160" text-anchor="middle" fill="var(--text3)" font-size="7" font-style="italic">residual 2</text>
+
+  <!-- Output -->
+  <line x1="694" y1="67" x2="706" y2="67" stroke="var(--text3)" stroke-width="1"/><polygon points="703,63 710,67 703,71" fill="var(--text3)"/>
+  <rect x="710" y="54" width="68" height="26" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="744" y="71" text-anchor="middle" fill="var(--blue-text)" font-size="8" font-weight="600">y [5184,1024]</text>
+
+  <text x="10" y="184" fill="var(--text3)" font-size="9">Windowed (28 blocks): 24x24 windows  .  Global (blocks 7, 15, 23, 31): all 5184 tokens</text>
+</svg>
+</div>
+
+<p>
+After all 32 blocks, the model has 5184 rich feature vectors, but
+they are still a flat list. The next stage, called the neck, reshapes
+them back into a spatial grid and builds four copies at different
+zoom levels, like having the same map at four different scales. The
+1x scale feeds the main pipeline. The finer 2x and 4x scales get
+saved for later, when the model needs high-resolution detail to draw
+precise mask edges.
+</p>
+
+<div class="arch-scales">
+  <div class="arch-scale-box"><div class="label">s0 (4x) <span class="arch-tag arch-tag-teal">ConvTr</span></div><div class="shape">[1, 288, 288, 256]</div></div>
+  <div class="arch-scale-box"><div class="label">s1 (2x) <span class="arch-tag arch-tag-teal">ConvTr</span></div><div class="shape">[1, 144, 144, 256]</div></div>
+  <div class="arch-scale-box"><div class="label">s2 (1x) <span class="arch-tag arch-tag-blue">main</span></div><div class="shape">[1, 72, 72, 256]</div></div>
+  <div class="arch-scale-box"><div class="label">s3 (1/2x) <span class="arch-tag arch-tag-gray">Pool</span></div><div class="shape">[1, 36, 36, 256]</div></div>
+</div>
+
+<p>
+While all of that is happening to the image, a separate path handles
+your text prompt. A tokenizer breaks your words into small pieces
+(subword tokens), and a 24-layer CLIP text transformer turns those
+pieces into numerical features the model can reason about. In SAM3.c,
+this text encoding runs on a separate CPU thread at the same time as
+the image encoder, so neither waits for the other.
+</p>
+
+<div class="arch-grid">
+  <div class="arch-card">
+    <div class="title">sam3_text_encoder</div>
+    <div class="arch-kv">
+      <span class="k">width</span><span class="v">1024</span>
+      <span class="k">n_heads</span><span class="v">16</span>
+      <span class="k">n_layers</span><span class="v">24</span>
+      <span class="k">vocab_size</span><span class="v">49408</span>
+      <span class="k">d_model</span><span class="v">256 (output)</span>
+    </div>
+  </div>
+  <div class="arch-card">
+    <div class="title">Async execution</div>
+    <div class="detail">
+      main: tokenize, spawn worker<br>
+      worker: text_encoder (24 blocks, CPU)<br>
+      main: join, cached [32, 256]
+    </div>
+  </div>
+</div>
+
+<h2>Where vision meets language</h2>
+
+<p>
+Up to this point, the image and text have been processed separately.
+The encoder fusion is where they finally meet. Six transformer layers
+run in sequence: first, the image features attend to each other
+(self-attention), then they attend to the text features
+(cross-attention, where each image tile asks "how relevant is each
+word to me?"), then a feedforward network refines the result. After
+six rounds of this, every one of those 5184 image tiles has been
+shaped by the meaning of your words.
+</p>
+
+<div class="arch-section">
+<svg width="100%" viewBox="0 0 600 140">
+  <!-- Image features input -->
+  <rect x="10" y="20" width="55" height="50" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <rect x="10" y="20" width="11" height="10" fill="var(--blue)" opacity=".15"/><rect x="21" y="20" width="11" height="10" fill="var(--blue)" opacity=".25"/><rect x="32" y="20" width="11" height="10" fill="var(--blue)" opacity=".1"/><rect x="43" y="20" width="11" height="10" fill="var(--blue)" opacity=".2"/><rect x="54" y="20" width="11" height="10" fill="var(--blue)" opacity=".12"/>
+  <rect x="10" y="30" width="11" height="10" fill="var(--blue)" opacity=".2"/><rect x="21" y="30" width="11" height="10" fill="var(--blue)" opacity=".1"/><rect x="32" y="30" width="11" height="10" fill="var(--blue)" opacity=".3"/><rect x="43" y="30" width="11" height="10" fill="var(--blue)" opacity=".08"/><rect x="54" y="30" width="11" height="10" fill="var(--blue)" opacity=".22"/>
+  <rect x="10" y="40" width="11" height="10" fill="var(--blue)" opacity=".1"/><rect x="21" y="40" width="11" height="10" fill="var(--blue)" opacity=".28"/><rect x="32" y="40" width="11" height="10" fill="var(--blue)" opacity=".15"/><rect x="43" y="40" width="11" height="10" fill="var(--blue)" opacity=".2"/><rect x="54" y="40" width="11" height="10" fill="var(--blue)" opacity=".18"/>
+  <rect x="10" y="50" width="11" height="10" fill="var(--blue)" opacity=".25"/><rect x="21" y="50" width="11" height="10" fill="var(--blue)" opacity=".12"/><rect x="32" y="50" width="11" height="10" fill="var(--blue)" opacity=".08"/><rect x="43" y="50" width="11" height="10" fill="var(--blue)" opacity=".3"/><rect x="54" y="50" width="11" height="10" fill="var(--blue)" opacity=".15"/>
+  <rect x="10" y="60" width="11" height="10" fill="var(--blue)" opacity=".18"/><rect x="21" y="60" width="11" height="10" fill="var(--blue)" opacity=".06"/><rect x="32" y="60" width="11" height="10" fill="var(--blue)" opacity=".22"/><rect x="43" y="60" width="11" height="10" fill="var(--blue)" opacity=".12"/><rect x="54" y="60" width="11" height="10" fill="var(--blue)" opacity=".25"/>
+  <rect x="10" y="20" width="55" height="50" rx="4" fill="none" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="38" y="84" text-anchor="middle" fill="var(--blue-text)" font-size="8">[5184, 256]</text>
+
+  <line x1="69" y1="45" x2="84" y2="45" stroke="var(--text3)" stroke-width="1"/><polygon points="81,41 88,45 81,49" fill="var(--text3)"/>
+
+  <!-- SA -->
+  <rect x="90" y="30" width="50" height="30" rx="5" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width=".5"/>
+  <text x="115" y="44" text-anchor="middle" fill="var(--purple-text)" font-size="9" font-weight="600">SA</text>
+  <text x="115" y="56" text-anchor="middle" fill="var(--text3)" font-size="7">self-attn</text>
+
+  <line x1="144" y1="45" x2="159" y2="45" stroke="var(--text3)" stroke-width="1"/><polygon points="156,41 163,45 156,49" fill="var(--text3)"/>
+
+  <!-- CA -->
+  <rect x="165" y="10" width="160" height="80" rx="6" fill="none" stroke="var(--border)" stroke-width="1" stroke-dasharray="5 3"/>
+  <text x="245" y="24" text-anchor="middle" fill="var(--coral-text)" font-size="9" font-weight="600">CA  cross-attention</text>
+  <rect x="178" y="34" width="30" height="40" rx="3" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".3"/>
+  <text x="193" y="58" text-anchor="middle" fill="var(--coral-text)" font-size="8">img Q</text>
+  <text x="216" y="58" text-anchor="middle" fill="var(--text)" font-size="12">x</text>
+  <rect x="226" y="34" width="24" height="40" rx="3" fill="var(--amber-bg)" stroke="var(--amber-border)" stroke-width=".3"/>
+  <text x="238" y="58" text-anchor="middle" fill="var(--amber-text)" font-size="8">txt K'</text>
+  <text x="258" y="58" text-anchor="middle" fill="var(--text3)" font-size="10">=</text>
+  <!-- Attention heatmap -->
+  <rect x="268" y="34" width="40" height="40" rx="3" fill="var(--coral)" opacity=".04"/>
+  <rect x="268" y="34" width="10" height="10" fill="var(--coral)" opacity=".6"/><rect x="278" y="34" width="10" height="10" fill="var(--coral)" opacity=".15"/><rect x="288" y="34" width="10" height="10" fill="var(--coral)" opacity=".1"/><rect x="298" y="34" width="10" height="10" fill="var(--coral)" opacity=".05"/>
+  <rect x="268" y="44" width="10" height="10" fill="var(--coral)" opacity=".1"/><rect x="278" y="44" width="10" height="10" fill="var(--coral)" opacity=".5"/><rect x="288" y="44" width="10" height="10" fill="var(--coral)" opacity=".2"/><rect x="298" y="44" width="10" height="10" fill="var(--coral)" opacity=".08"/>
+  <rect x="268" y="54" width="10" height="10" fill="var(--coral)" opacity=".05"/><rect x="278" y="54" width="10" height="10" fill="var(--coral)" opacity=".25"/><rect x="288" y="54" width="10" height="10" fill="var(--coral)" opacity=".7"/><rect x="298" y="54" width="10" height="10" fill="var(--coral)" opacity=".12"/>
+  <rect x="268" y="64" width="10" height="10" fill="var(--coral)" opacity=".08"/><rect x="278" y="64" width="10" height="10" fill="var(--coral)" opacity=".1"/><rect x="288" y="64" width="10" height="10" fill="var(--coral)" opacity=".15"/><rect x="298" y="64" width="10" height="10" fill="var(--coral)" opacity=".6"/>
+  <rect x="268" y="34" width="40" height="40" rx="3" fill="none" stroke="var(--coral-border)" stroke-width=".3"/>
+  <text x="288" y="86" text-anchor="middle" fill="var(--text3)" font-size="7">softmax . V</text>
+  <!-- Text label -->
+  <rect x="226" y="2" width="24" height="10" rx="2" fill="var(--amber-bg)" stroke="var(--amber-border)" stroke-width=".3"/>
+  <text x="238" y="10" text-anchor="middle" fill="var(--amber-text)" font-size="6">[32,256]</text>
+  <line x1="238" y1="12" x2="238" y2="32" stroke="var(--amber-border)" stroke-width=".5" stroke-dasharray="2 2"/>
+
+  <line x1="312" y1="54" x2="348" y2="45" stroke="var(--text3)" stroke-width="1"/><polygon points="345,41 352,45 346,49" fill="var(--text3)"/>
+
+  <!-- FFN -->
+  <rect x="354" y="30" width="50" height="30" rx="5" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width=".5"/>
+  <text x="379" y="44" text-anchor="middle" fill="var(--teal-text)" font-size="9" font-weight="600">FFN</text>
+  <text x="379" y="56" text-anchor="middle" fill="var(--text3)" font-size="7">ReLU 2048</text>
+
+  <line x1="408" y1="45" x2="423" y2="45" stroke="var(--text3)" stroke-width="1"/><polygon points="420,41 427,45 420,49" fill="var(--text3)"/>
+
+  <!-- Output -->
+  <rect x="429" y="20" width="55" height="50" rx="4" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".5"/>
+  <text x="457" y="50" text-anchor="middle" fill="var(--coral-text)" font-size="9" font-weight="500">fused</text>
+  <text x="457" y="84" text-anchor="middle" fill="var(--coral-text)" font-size="8">[5184, 256]</text>
+
+  <text x="245" y="112" text-anchor="middle" fill="var(--text3)" font-size="9">x 6 layers . each layer has its own weights . residual after every sub-block</text>
+</svg>
+</div>
+
+<p>
+Next comes the decoder. Think of it as sending 200 scouts into the
+fused features, each one looking for a different object. These
+"queries" are learned vectors that the model trains to home in on
+objects. Over six layers, each query consults the text (what am I
+looking for?), consults the image (where is it?), and refines its
+bounding box estimate. By the sixth layer, each query has either
+locked onto a real object or gone quiet.
+</p>
+
+<div class="arch-section">
+<svg width="100%" viewBox="0 0 800 130">
+  <!-- Queries -->
+  <rect x="10" y="26" width="50" height="40" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="35" y="46" text-anchor="middle" fill="var(--blue-text)" font-size="8">200 Q</text>
+  <text x="35" y="58" text-anchor="middle" fill="var(--text3)" font-size="7">[200,256]</text>
+
+  <line x1="64" y1="46" x2="78" y2="46" stroke="var(--text3)" stroke-width="1"/><polygon points="75,42 82,46 75,50" fill="var(--text3)"/>
+
+  <!-- SA -->
+  <rect x="84" y="32" width="42" height="28" rx="5" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width=".5"/>
+  <text x="105" y="50" text-anchor="middle" fill="var(--purple-text)" font-size="8" font-weight="600">SA</text>
+
+  <line x1="130" y1="46" x2="144" y2="46" stroke="var(--text3)" stroke-width="1"/><polygon points="141,42 148,46 141,50" fill="var(--text3)"/>
+
+  <!-- TCA -->
+  <rect x="150" y="16" width="100" height="68" rx="6" fill="none" stroke="var(--border)" stroke-width="1" stroke-dasharray="5 3"/>
+  <text x="200" y="28" text-anchor="middle" fill="var(--amber-text)" font-size="8" font-weight="600">TCA  text cross-attn</text>
+  <rect x="162" y="36" width="20" height="30" rx="2" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".3"/><text x="172" y="54" text-anchor="middle" fill="var(--blue-text)" font-size="7">Q</text>
+  <text x="188" y="54" fill="var(--text)" font-size="10">x</text>
+  <rect x="196" y="36" width="18" height="30" rx="2" fill="var(--amber-bg)" stroke="var(--amber-border)" stroke-width=".3"/><text x="205" y="54" text-anchor="middle" fill="var(--amber-text)" font-size="7">txt K'</text>
+  <text x="220" y="54" fill="var(--text3)" font-size="8">=</text>
+  <rect x="228" y="38" width="16" height="24" rx="2" fill="var(--amber)" opacity=".04"/>
+  <rect x="228" y="38" width="8" height="12" fill="var(--amber)" opacity=".4"/><rect x="236" y="38" width="8" height="12" fill="var(--amber)" opacity=".15"/>
+  <rect x="228" y="50" width="8" height="12" fill="var(--amber)" opacity=".1"/><rect x="236" y="50" width="8" height="12" fill="var(--amber)" opacity=".5"/>
+  <rect x="228" y="38" width="16" height="24" rx="2" fill="none" stroke="var(--amber-border)" stroke-width=".3"/>
+
+  <line x1="254" y1="46" x2="268" y2="46" stroke="var(--text3)" stroke-width="1"/><polygon points="265,42 272,46 265,50" fill="var(--text3)"/>
+
+  <!-- CA vision -->
+  <rect x="274" y="16" width="110" height="68" rx="6" fill="none" stroke="var(--border)" stroke-width="1" stroke-dasharray="5 3"/>
+  <text x="329" y="28" text-anchor="middle" fill="var(--coral-text)" font-size="8" font-weight="600">CA  vision cross-attn</text>
+  <rect x="286" y="36" width="20" height="30" rx="2" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".3"/><text x="296" y="54" text-anchor="middle" fill="var(--blue-text)" font-size="7">Q</text>
+  <text x="312" y="54" fill="var(--text)" font-size="10">x</text>
+  <rect x="320" y="36" width="22" height="30" rx="2" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".3"/><text x="331" y="54" text-anchor="middle" fill="var(--coral-text)" font-size="7">enc K'</text>
+  <text x="348" y="54" fill="var(--text3)" font-size="8">=</text>
+  <rect x="356" y="38" width="16" height="24" rx="2" fill="var(--coral)" opacity=".04"/>
+  <rect x="356" y="38" width="8" height="12" fill="var(--coral)" opacity=".15"/><rect x="364" y="38" width="8" height="12" fill="var(--coral)" opacity=".6"/>
+  <rect x="356" y="50" width="8" height="12" fill="var(--coral)" opacity=".5"/><rect x="364" y="50" width="8" height="12" fill="var(--coral)" opacity=".1"/>
+  <rect x="356" y="38" width="16" height="24" rx="2" fill="none" stroke="var(--coral-border)" stroke-width=".3"/>
+
+  <line x1="388" y1="46" x2="402" y2="46" stroke="var(--text3)" stroke-width="1"/><polygon points="399,42 406,46 399,50" fill="var(--text3)"/>
+
+  <!-- FFN -->
+  <rect x="408" y="32" width="42" height="28" rx="5" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width=".5"/>
+  <text x="429" y="50" text-anchor="middle" fill="var(--teal-text)" font-size="8" font-weight="600">FFN</text>
+
+  <line x1="454" y1="46" x2="468" y2="46" stroke="var(--text3)" stroke-width="1"/><polygon points="465,42 472,46 465,50" fill="var(--text3)"/>
+
+  <!-- Box MLP -->
+  <rect x="474" y="24" width="72" height="44" rx="5" fill="var(--pink-bg)" stroke="var(--pink-border)" stroke-width=".5"/>
+  <text x="510" y="42" text-anchor="middle" fill="var(--pink-text)" font-size="8" font-weight="600">box MLP</text>
+  <text x="510" y="56" text-anchor="middle" fill="var(--text3)" font-size="7">3L, delta [200,4]</text>
+
+  <line x1="550" y1="46" x2="564" y2="46" stroke="var(--text3)" stroke-width="1"/><polygon points="561,42 568,46 561,50" fill="var(--text3)"/>
+
+  <!-- Outputs -->
+  <rect x="570" y="22" width="56" height="22" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="598" y="37" text-anchor="middle" fill="var(--blue-text)" font-size="8">[200, 256]</text>
+  <rect x="570" y="48" width="56" height="22" rx="4" fill="var(--pink-bg)" stroke="var(--pink-border)" stroke-width=".5"/>
+  <text x="598" y="63" text-anchor="middle" fill="var(--pink-text)" font-size="8">[200, 4]</text>
+
+  <text x="329" y="104" text-anchor="middle" fill="var(--text3)" font-size="9">x 6 layers . boxes refined at every layer (DAB-DETR) . each layer has own weights</text>
+</svg>
+</div>
+
+<p>
+The last step turns those query vectors into actual masks. Each
+query passes through a small network that projects it into mask
+space, then gets compared against a high-resolution pixel feature
+map (built from those multi-scale copies the neck saved earlier).
+The comparison produces a score for every pixel: how likely is this
+pixel to belong to the object this query found? Resize the scores
+back to the original image size, filter out duplicates, and you
+have your segmentation masks.
+</p>
+
+<div class="arch-section">
+<svg width="100%" viewBox="0 0 680 130">
+  <rect x="10" y="14" width="42" height="72" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="31" y="38" text-anchor="middle" fill="var(--blue-text)" font-size="8">q0</text><text x="31" y="52" text-anchor="middle" fill="var(--blue-text)" font-size="8">q1</text><text x="31" y="64" text-anchor="middle" fill="var(--text3)" font-size="7">...</text><text x="31" y="76" text-anchor="middle" fill="var(--blue-text)" font-size="8">q199</text>
+  <text x="31" y="102" text-anchor="middle" fill="var(--blue-text)" font-size="8">[200,256]</text>
+  <line x1="56" y1="50" x2="70" y2="50" stroke="var(--text3)" stroke-width="1"/><polygon points="67,46 74,50 67,54" fill="var(--text3)"/>
+  <rect x="76" y="28" width="56" height="44" rx="5" fill="var(--green-bg)" stroke="var(--green-border)" stroke-width=".5"/>
+  <text x="104" y="48" text-anchor="middle" fill="var(--green-text)" font-size="8" font-weight="600">mask_mlp</text>
+  <text x="104" y="62" text-anchor="middle" fill="var(--text3)" font-size="7">3L ReLU</text>
+  <line x1="136" y1="50" x2="150" y2="50" stroke="var(--text3)" stroke-width="1"/><polygon points="147,46 154,50 147,54" fill="var(--text3)"/>
+  <rect x="156" y="26" width="36" height="48" rx="4" fill="var(--green-bg)" stroke="var(--green-border)" stroke-width=".5"/>
+  <text x="174" y="54" text-anchor="middle" fill="var(--green-text)" font-size="9" font-weight="500">E</text>
+  <text x="174" y="88" text-anchor="middle" fill="var(--green-text)" font-size="8">[200,256]</text>
+  <text x="204" y="54" text-anchor="middle" fill="var(--text)" font-size="14" font-weight="600">@</text>
+  <!-- Pixel features -->
+  <rect x="220" y="14" width="100" height="72" rx="4" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width=".5"/>
+  <rect x="220" y="14" width="10" height="12" fill="var(--teal)" opacity=".15"/><rect x="230" y="14" width="10" height="12" fill="var(--teal)" opacity=".25"/><rect x="240" y="14" width="10" height="12" fill="var(--teal)" opacity=".3"/><rect x="250" y="14" width="10" height="12" fill="var(--teal)" opacity=".1"/><rect x="260" y="14" width="10" height="12" fill="var(--teal)" opacity=".2"/><rect x="270" y="14" width="10" height="12" fill="var(--teal)" opacity=".35"/><rect x="280" y="14" width="10" height="12" fill="var(--teal)" opacity=".1"/><rect x="290" y="14" width="10" height="12" fill="var(--teal)" opacity=".2"/><rect x="300" y="14" width="10" height="12" fill="var(--teal)" opacity=".25"/><rect x="310" y="14" width="10" height="12" fill="var(--teal)" opacity=".15"/>
+  <rect x="220" y="26" width="10" height="12" fill="var(--teal)" opacity=".2"/><rect x="230" y="26" width="10" height="12" fill="var(--teal)" opacity=".1"/><rect x="240" y="26" width="10" height="12" fill="var(--teal)" opacity=".25"/><rect x="250" y="26" width="10" height="12" fill="var(--teal)" opacity=".35"/><rect x="260" y="26" width="10" height="12" fill="var(--teal)" opacity=".1"/><rect x="270" y="26" width="10" height="12" fill="var(--teal)" opacity=".2"/><rect x="280" y="26" width="10" height="12" fill="var(--teal)" opacity=".3"/><rect x="290" y="26" width="10" height="12" fill="var(--teal)" opacity=".15"/><rect x="300" y="26" width="10" height="12" fill="var(--teal)" opacity=".25"/><rect x="310" y="26" width="10" height="12" fill="var(--teal)" opacity=".2"/>
+  <rect x="220" y="38" width="10" height="12" fill="var(--teal)" opacity=".1"/><rect x="230" y="38" width="10" height="12" fill="var(--teal)" opacity=".3"/><rect x="240" y="38" width="10" height="12" fill="var(--teal)" opacity=".15"/><rect x="250" y="38" width="10" height="12" fill="var(--teal)" opacity=".2"/><rect x="260" y="38" width="10" height="12" fill="var(--teal)" opacity=".35"/><rect x="270" y="38" width="10" height="12" fill="var(--teal)" opacity=".25"/><rect x="280" y="38" width="10" height="12" fill="var(--teal)" opacity=".1"/><rect x="290" y="38" width="10" height="12" fill="var(--teal)" opacity=".3"/><rect x="300" y="38" width="10" height="12" fill="var(--teal)" opacity=".15"/><rect x="310" y="38" width="10" height="12" fill="var(--teal)" opacity=".2"/>
+  <rect x="220" y="50" width="10" height="12" fill="var(--teal)" opacity=".25"/><rect x="230" y="50" width="10" height="12" fill="var(--teal)" opacity=".15"/><rect x="240" y="50" width="10" height="12" fill="var(--teal)" opacity=".2"/><rect x="250" y="50" width="10" height="12" fill="var(--teal)" opacity=".1"/><rect x="260" y="50" width="10" height="12" fill="var(--teal)" opacity=".3"/><rect x="270" y="50" width="10" height="12" fill="var(--teal)" opacity=".2"/><rect x="280" y="50" width="10" height="12" fill="var(--teal)" opacity=".35"/><rect x="290" y="50" width="10" height="12" fill="var(--teal)" opacity=".1"/><rect x="300" y="50" width="10" height="12" fill="var(--teal)" opacity=".2"/><rect x="310" y="50" width="10" height="12" fill="var(--teal)" opacity=".25"/>
+  <rect x="220" y="62" width="10" height="12" fill="var(--teal)" opacity=".15"/><rect x="230" y="62" width="10" height="12" fill="var(--teal)" opacity=".2"/><rect x="240" y="62" width="10" height="12" fill="var(--teal)" opacity=".3"/><rect x="250" y="62" width="10" height="12" fill="var(--teal)" opacity=".25"/><rect x="260" y="62" width="10" height="12" fill="var(--teal)" opacity=".1"/><rect x="270" y="62" width="10" height="12" fill="var(--teal)" opacity=".15"/><rect x="280" y="62" width="10" height="12" fill="var(--teal)" opacity=".2"/><rect x="290" y="62" width="10" height="12" fill="var(--teal)" opacity=".35"/><rect x="300" y="62" width="10" height="12" fill="var(--teal)" opacity=".1"/><rect x="310" y="62" width="10" height="12" fill="var(--teal)" opacity=".3"/>
+  <rect x="220" y="74" width="10" height="12" fill="var(--teal)" opacity=".2"/><rect x="230" y="74" width="10" height="12" fill="var(--teal)" opacity=".25"/><rect x="240" y="74" width="10" height="12" fill="var(--teal)" opacity=".1"/><rect x="250" y="74" width="10" height="12" fill="var(--teal)" opacity=".3"/><rect x="260" y="74" width="10" height="12" fill="var(--teal)" opacity=".15"/><rect x="270" y="74" width="10" height="12" fill="var(--teal)" opacity=".25"/><rect x="280" y="74" width="10" height="12" fill="var(--teal)" opacity=".2"/><rect x="290" y="74" width="10" height="12" fill="var(--teal)" opacity=".1"/><rect x="300" y="74" width="10" height="12" fill="var(--teal)" opacity=".3"/><rect x="310" y="74" width="10" height="12" fill="var(--teal)" opacity=".15"/>
+  <rect x="220" y="14" width="100" height="72" rx="4" fill="none" stroke="var(--teal-border)" stroke-width=".5"/>
+  <text x="270" y="102" text-anchor="middle" fill="var(--teal-text)" font-size="8">[256, HxW] pixel features</text>
+  <text x="338" y="54" text-anchor="middle" fill="var(--text)" font-size="14" font-weight="600">=</text>
+  <!-- Mask logits -->
+  <rect x="354" y="18" width="140" height="64" rx="4" fill="var(--bg2)" stroke="var(--border)" stroke-width=".5"/>
+  <rect x="354" y="18" width="14" height="16" fill="var(--green)" opacity=".04"/><rect x="368" y="18" width="14" height="16" fill="var(--green)" opacity=".06"/><rect x="382" y="18" width="14" height="16" fill="var(--green)" opacity=".15"/><rect x="396" y="18" width="14" height="16" fill="var(--green)" opacity=".6"/><rect x="410" y="18" width="14" height="16" fill="var(--green)" opacity=".85"/><rect x="424" y="18" width="14" height="16" fill="var(--green)" opacity=".9"/><rect x="438" y="18" width="14" height="16" fill="var(--green)" opacity=".7"/><rect x="452" y="18" width="14" height="16" fill="var(--green)" opacity=".3"/><rect x="466" y="18" width="14" height="16" fill="var(--green)" opacity=".08"/><rect x="480" y="18" width="14" height="16" fill="var(--green)" opacity=".03"/>
+  <rect x="354" y="34" width="14" height="16" fill="var(--green)" opacity=".03"/><rect x="368" y="34" width="14" height="16" fill="var(--green)" opacity=".05"/><rect x="382" y="34" width="14" height="16" fill="var(--green)" opacity=".35"/><rect x="396" y="34" width="14" height="16" fill="var(--green)" opacity=".8"/><rect x="410" y="34" width="14" height="16" fill="var(--green)" opacity=".95"/><rect x="424" y="34" width="14" height="16" fill="var(--green)" opacity="1"/><rect x="438" y="34" width="14" height="16" fill="var(--green)" opacity=".85"/><rect x="452" y="34" width="14" height="16" fill="var(--green)" opacity=".5"/><rect x="466" y="34" width="14" height="16" fill="var(--green)" opacity=".12"/><rect x="480" y="34" width="14" height="16" fill="var(--green)" opacity=".04"/>
+  <rect x="354" y="50" width="14" height="16" fill="var(--green)" opacity=".02"/><rect x="368" y="50" width="14" height="16" fill="var(--green)" opacity=".08"/><rect x="382" y="50" width="14" height="16" fill="var(--green)" opacity=".25"/><rect x="396" y="50" width="14" height="16" fill="var(--green)" opacity=".65"/><rect x="410" y="50" width="14" height="16" fill="var(--green)" opacity=".8"/><rect x="424" y="50" width="14" height="16" fill="var(--green)" opacity=".75"/><rect x="438" y="50" width="14" height="16" fill="var(--green)" opacity=".55"/><rect x="452" y="50" width="14" height="16" fill="var(--green)" opacity=".2"/><rect x="466" y="50" width="14" height="16" fill="var(--green)" opacity=".06"/><rect x="480" y="50" width="14" height="16" fill="var(--green)" opacity=".02"/>
+  <rect x="354" y="66" width="14" height="16" fill="var(--green)" opacity=".01"/><rect x="368" y="66" width="14" height="16" fill="var(--green)" opacity=".02"/><rect x="382" y="66" width="14" height="16" fill="var(--green)" opacity=".04"/><rect x="396" y="66" width="14" height="16" fill="var(--green)" opacity=".08"/><rect x="410" y="66" width="14" height="16" fill="var(--green)" opacity=".12"/><rect x="424" y="66" width="14" height="16" fill="var(--green)" opacity=".1"/><rect x="438" y="66" width="14" height="16" fill="var(--green)" opacity=".06"/><rect x="452" y="66" width="14" height="16" fill="var(--green)" opacity=".03"/><rect x="466" y="66" width="14" height="16" fill="var(--green)" opacity=".01"/><rect x="480" y="66" width="14" height="16" fill="var(--green)" opacity=".01"/>
+  <rect x="354" y="18" width="140" height="64" rx="4" fill="none" stroke="var(--border)" stroke-width=".5"/>
+  <text x="424" y="98" text-anchor="middle" fill="var(--green-text)" font-size="8" font-weight="500">[200, H, W] mask logits</text>
+
+  <!-- Result -->
+  <text x="512" y="30" fill="var(--text3)" font-size="8">resize + NMS</text>
+  <defs><clipPath id="mask-res-clip"><rect x="518" y="38" width="40" height="40" rx="4"/></clipPath></defs>
+  <rect x="518" y="38" width="40" height="40" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <image href="../assets/cat.png" x="518" y="38" width="40" height="40" clip-path="url(#mask-res-clip)" preserveAspectRatio="xMidYMid slice"/>
+  <image href="../assets/overlay_0.png" x="518" y="38" width="40" height="40" clip-path="url(#mask-res-clip)" preserveAspectRatio="xMidYMid slice" opacity=".5"/>
+  <text x="580" y="54" fill="var(--text)" font-size="9" font-weight="600">sam3_result</text>
+  <text x="580" y="68" fill="var(--text3)" font-size="8">masks . boxes . IoU</text>
+</svg>
+</div>
+
+<p>
+One detail worth noting: SAM 3 actually has two paths to generate
+masks. When you give it text or a bounding box, it follows the
+pipeline described above. When you click a point instead, a separate
+lightweight decoder runs a compact transformer that passes
+information between the click location and the image features in both
+directions, producing four candidate masks per click. Both paths
+end the same way: resize, bounding box computation, and best-mask
+selection.
 </p>
 
 <h2>Why rewrite it in C</h2>
 
 <p>
-SAM 3 is a large model. The reference implementation is in Python
-with PyTorch, which is great for research but carries the weight of
-an entire framework. If you believe AI should run anywhere, on any
+On a single NVIDIA H200 GPU, SAM 3 can process an image with over
+100 detectable objects in about 30 milliseconds. It doubles the
+accuracy of previous systems in both image and video concept
+segmentation. But the reference implementation is in Python with
+PyTorch, which is great for research but carries the weight of an
+entire framework. If you believe AI should run anywhere, on any
 device, without cloud dependencies, you need to go lower.
 </p>
 
 <p>
-That is what SAM3.c is about. A pure C implementation. No Python,
-no PyTorch, no framework. Just the math, the memory, and the metal.
-The rest of this series walks through how every piece of the model
-actually works, close enough to the silicon that you could rebuild it
-yourself.
+That is what <a href="https://github.com/rifkybujana/sam3.c">SAM3.c</a>
+is about. A pure C implementation. No Python, no PyTorch, no
+framework. Just the math, the memory, and the metal.
 </p>
 
-<hr>
+<div class="arch-perf-grid">
+  <div class="arch-perf-card"><div class="title">Per-block ViT eval</div><div class="detail">55 GB peak down to about 2.5 GB</div></div>
+  <div class="arch-perf-card"><div class="title">Batched graph eval</div><div class="detail">4 blocks per eval on Metal</div></div>
+  <div class="arch-perf-card"><div class="title">Async text encoder</div><div class="detail">Overlaps text and image encode</div></div>
+  <div class="arch-perf-card"><div class="title">Arena allocators</div><div class="detail">No malloc on the hot path</div></div>
+  <div class="arch-perf-card"><div class="title">mmap + FNV-1a</div><div class="detail">Model loads in about 60 ms, zero-copy</div></div>
+  <div class="arch-perf-card"><div class="title">NHWC / OHWI layout</div><div class="detail">Zero-copy conv execution</div></div>
+  <div class="arch-perf-card"><div class="title">Q8_0 quantization</div><div class="detail">Block-quantized weights</div></div>
+  <div class="arch-perf-card"><div class="title">F16/BF16 kernels</div><div class="detail">Matmul, conv, LayerNorm, RoPE</div></div>
+</div>
 
+<p>
+The rest of this series walks through how every piece works, close
+enough to the silicon that you could rebuild it yourself.
+</p>
+
+</article>
+</main>
+
+<footer>
 <p>
 <a href="01-machines-eyes.html">&larr; Previous: Machine's Eyes</a>
 &nbsp;&middot;&nbsp;
 <a href="../index.html">Home</a>
+&nbsp;&middot;&nbsp;
+<a href="03-tokenizer.html">Next: Tokenizer &rarr;</a>
 </p>
+</footer>
 
 </body>
 </html>
