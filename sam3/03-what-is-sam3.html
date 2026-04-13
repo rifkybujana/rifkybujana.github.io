@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>What is SAM3? — Rifky Bujana Bisri</title>
 <meta name="description" content="SAM3 can segment any object you can name. From click-based SAM1 to video-tracking SAM2 to text-prompted SAM3, how Meta's Segment Anything Model evolved.">
-<link rel="canonical" href="https://rifkybujana.github.io/sam3/02-what-is-sam3.html">
-<link rel="prev" href="https://rifkybujana.github.io/sam3/01-machines-eyes.html">
-<link rel="next" href="https://rifkybujana.github.io/sam3/03-tokenizer.html">
+<link rel="canonical" href="https://rifkybujana.github.io/sam3/03-what-is-sam3.html">
+<link rel="prev" href="https://rifkybujana.github.io/sam3/02-the-language-of-numbers.html">
+<link rel="next" href="https://rifkybujana.github.io/sam3/04-tokenizer.html">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%231a0dab'/><text x='50' y='68' font-family='Georgia,serif' font-size='52' font-weight='bold' fill='white' text-anchor='middle'>RB</text></svg>">
 <meta property="og:title" content="What is SAM3? — Rifky Bujana Bisri">
 <meta property="og:description" content="SAM3 can segment any object you can name. From click-based SAM1 to video-tracking SAM2 to text-prompted SAM3, how Meta's Segment Anything Model evolved.">
-<meta property="og:url" content="https://rifkybujana.github.io/sam3/02-what-is-sam3.html">
+<meta property="og:url" content="https://rifkybujana.github.io/sam3/03-what-is-sam3.html">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Rifky Bujana Bisri">
 <meta name="twitter:card" content="summary">
@@ -870,8 +870,17 @@ framework. Just the math, the memory, and the metal.
 </div>
 
 <p>
-The rest of this series walks through how every piece works, close
-enough to the silicon that you could rebuild it yourself.
+We have seen what SAM3 is and why it matters. But we have only looked
+at the architecture from above. Every box in that diagram hides real
+computation, real data flowing through real operations.
+</p>
+
+<p>
+The next chapters will open each box, one at a time, close enough to
+the silicon that you could rebuild it yourself. We start with the
+tokenizer. Before SAM3 can understand a text prompt like "the dog on
+the left," it needs to break those words into pieces a neural network
+can digest. How does that work? That is where we go next.
 </p>
 
 </article>
@@ -879,11 +888,11 @@ enough to the silicon that you could rebuild it yourself.
 
 <footer>
 <p>
-<a href="01-machines-eyes.html">&larr; Previous: Machine's Eyes</a>
+<a href="02-the-language-of-numbers.html">&larr; Previous: The Language of Numbers</a>
 &nbsp;&middot;&nbsp;
 <a href="../index.html">Home</a>
 &nbsp;&middot;&nbsp;
-<a href="03-tokenizer.html">Next: Tokenizer &rarr;</a>
+<a href="04-tokenizer.html">Next: Tokenizer &rarr;</a>
 </p>
 </footer>
 

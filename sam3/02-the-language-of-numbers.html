@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Language of Numbers — Rifky Bujana Bisri</title>
+<meta name="description" content="One-hot encoding, dot products, matrix multiplication, softmax, and attention. The math that lets machines see, from the very beginning.">
+<link rel="canonical" href="https://rifkybujana.github.io/sam3/02-the-language-of-numbers.html">
+<link rel="prev" href="https://rifkybujana.github.io/sam3/01-machines-eyes.html">
+<link rel="next" href="https://rifkybujana.github.io/sam3/03-what-is-sam3.html">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%231a0dab'/><text x='50' y='68' font-family='Georgia,serif' font-size='52' font-weight='bold' fill='white' text-anchor='middle'>RB</text></svg>">
+<meta property="og:title" content="The Language of Numbers — Rifky Bujana Bisri">
+<meta property="og:description" content="One-hot encoding, dot products, matrix multiplication, softmax, and attention. The math that lets machines see, from the very beginning.">
+<meta property="og:url" content="https://rifkybujana.github.io/sam3/02-the-language-of-numbers.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Rifky Bujana Bisri">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="The Language of Numbers — Rifky Bujana Bisri">
+<meta name="twitter:description" content="One-hot encoding, dot products, matrix multiplication, softmax, and attention. The math that lets machines see, from the very beginning.">
+<style>
+  :root {
+    --bg: #ffffff; --bg2: #f7f6f3; --bg3: #eeedeb;
+    --text: #1a1a1a; --text2: #6b6a65; --text3: #9c9a92;
+    --border: #e2e0d8;
+    --purple: #534AB7; --purple-bg: #EEEDFE; --purple-border: #AFA9EC; --purple-text: #3C3489;
+    --teal: #0F6E56; --teal-bg: #E1F5EE; --teal-border: #5DCAA5; --teal-text: #085041;
+    --coral: #993C1D; --coral-bg: #FAECE7; --coral-border: #F0997B; --coral-text: #712B13;
+    --blue: #185FA5; --blue-bg: #E6F1FB; --blue-border: #85B7EB; --blue-text: #0C447C;
+    --amber: #854F0B; --amber-bg: #FAEEDA; --amber-border: #EF9F27; --amber-text: #633806;
+    --green: #3B6D11; --green-bg: #EAF3DE; --green-border: #97C459; --green-text: #27500A;
+    --gray: #5F5E5A; --gray-bg: #F1EFE8; --gray-border: #B4B2A9; --gray-text: #444441;
+    --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+    --sans: "Inter", "Helvetica Neue", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a1a; --bg2: #2c2c2a; --bg3: #3a3a38;
+      --text: #e8e6df; --text2: #9c9a92; --text3: #73726c;
+      --border: #444441;
+      --purple: #AFA9EC; --purple-bg: #26215C; --purple-border: #534AB7; --purple-text: #CECBF6;
+      --teal: #5DCAA5; --teal-bg: #04342C; --teal-border: #0F6E56; --teal-text: #9FE1CB;
+      --coral: #F0997B; --coral-bg: #4A1B0C; --coral-border: #993C1D; --coral-text: #F5C4B3;
+      --blue: #85B7EB; --blue-bg: #042C53; --blue-border: #185FA5; --blue-text: #B5D4F4;
+      --amber: #EF9F27; --amber-bg: #412402; --amber-border: #854F0B; --amber-text: #FAC775;
+      --green: #97C459; --green-bg: #173404; --green-border: #3B6D11; --green-text: #C0DD97;
+      --gray: #B4B2A9; --gray-bg: #2C2C2A; --gray-border: #5F5E5A; --gray-text: #D3D1C7;
+    }
+    body { background: var(--bg); color: var(--text); }
+    a { color: #7aafff; }
+    a:visited { color: #c4a0ff; }
+    code { background: var(--bg2); }
+    pre { background: var(--bg2); }
+  }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    max-width: 680px;
+    margin: 2em auto;
+    padding: 0 1.2em;
+    line-height: 1.6;
+    color: var(--text);
+    background: var(--bg);
+  }
+  h1 { font-size: 1.6em; margin-bottom: 0.1em; }
+  h2 { font-size: 1.25em; margin-top: 2em; }
+  p { margin: 0.8em 0; }
+  a { color: #1a0dab; }
+  a:visited { color: #609; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 2.5em 0; }
+  .breadcrumb { font-size: 0.9em; margin-bottom: 1.5em; }
+  .subtitle { color: var(--text2); font-style: italic; }
+  code {
+    font-family: var(--mono);
+    background: var(--bg2);
+    padding: 0.15em 0.35em;
+    font-size: 0.9em;
+    border-radius: 3px;
+  }
+  .diagram-section { margin: 1.5em 0; }
+  .diagram-section svg text { font-family: var(--mono); }
+  .math-display {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    text-align: center;
+    margin: 1em 0;
+    color: var(--text);
+  }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "The Language of Numbers — The Math That Lets Machines See",
+  "description": "One-hot encoding, dot products, matrix multiplication, softmax, and attention. The math that lets machines see, from the very beginning.",
+  "author": {
+    "@type": "Person",
+    "name": "Rifky Bujana Bisri",
+    "url": "https://rifkybujana.github.io"
+  },
+  "datePublished": "2026-04-13",
+  "dateModified": "2026-04-13",
+  "url": "https://rifkybujana.github.io/sam3/02-the-language-of-numbers.html"
+}
+</script>
+</head>
+<body>
+
+<nav class="breadcrumb"><a href="../index.html">Rifky Bujana Bisri</a> &rsaquo; Learning: SAM3</nav>
+
+<main>
+<article>
+<h1>The Language of Numbers</h1>
+<p class="subtitle">Can you believe that a bunch of numbers, multiplied together, enable a machine to see?</p>
+
+<p>
+In the last chapter, you watched a machine turn an image into a grid of
+numbers. Pixels became data. But seeing is only half the story. Before a
+model can recognize a cat, follow a person through a video, or understand
+the words "yellow school bus," it needs to do something humbler first.
+</p>
+
+<p>
+It needs to do arithmetic.
+</p>
+
+<p>
+Not calculus. Not anything exotic. The operations in this chapter are ones
+you already know: multiplication and addition. But when you arrange them
+in the right pattern, something remarkable happens. Numbers start to carry
+meaning. They start to measure similarity. They start to pay attention.
+</p>
+
+<p>
+Let us begin with the simplest question a machine can face: how do you
+turn a word into a number?
+</p>
+
+<h2>What a machine knows about a cat</h2>
+
+<p>
+Suppose you have five words: cat, dog, bird, fish, car. You need to hand
+one of them to a machine. But a machine does not read letters. It reads
+numbers. So you invent a system. Give each word a position in a list,
+then represent it as a row of zeros with a single one in that position.
+</p>
+
+<p>
+"Cat" becomes <code>[1, 0, 0, 0, 0]</code>. "Dog" becomes
+<code>[0, 1, 0, 0, 0]</code>. "Car" becomes <code>[0, 0, 0, 0, 1]</code>.
+Each word gets its own slot. This is called one-hot encoding. One slot
+is hot. The rest are cold.
+</p>
+
+<div class="diagram-section">
+<svg width="100%" viewBox="0 0 680 185">
+  <!-- Labels column -->
+  <text x="60" y="42" text-anchor="end" fill="var(--text)" font-size="12" font-weight="600">cat</text>
+  <text x="60" y="76" text-anchor="end" fill="var(--text)" font-size="12" font-weight="600">dog</text>
+  <text x="60" y="110" text-anchor="end" fill="var(--text)" font-size="12" font-weight="600">bird</text>
+  <text x="60" y="144" text-anchor="end" fill="var(--text)" font-size="12" font-weight="600">fish</text>
+  <text x="60" y="178" text-anchor="end" fill="var(--text)" font-size="12" font-weight="600">car</text>
+
+  <!-- Index headers -->
+  <text x="108" y="16" text-anchor="middle" fill="var(--text3)" font-size="9">0</text>
+  <text x="158" y="16" text-anchor="middle" fill="var(--text3)" font-size="9">1</text>
+  <text x="208" y="16" text-anchor="middle" fill="var(--text3)" font-size="9">2</text>
+  <text x="258" y="16" text-anchor="middle" fill="var(--text3)" font-size="9">3</text>
+  <text x="308" y="16" text-anchor="middle" fill="var(--text3)" font-size="9">4</text>
+
+  <!-- Row 0: cat [1,0,0,0,0] -->
+  <rect x="83" y="26" width="50" height="24" rx="4" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width=".5"/>
+  <text x="108" y="43" text-anchor="middle" fill="var(--purple-text)" font-size="12" font-weight="600">1</text>
+  <rect x="133" y="26" width="50" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="158" y="43" text-anchor="middle" fill="var(--text3)" font-size="12">0</text>
+  <rect x="183" y="26" width="50" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="208" y="43" text-anchor="middle" fill="var(--text3)" font-size="12">0</text>
+  <rect x="233" y="26" width="50" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="258" y="43" text-anchor="middle" fill="var(--text3)" font-size="12">0</text>
+  <rect x="283" y="26" width="50" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="308" y="43" text-anchor="middle" fill="var(--text3)" font-size="12">0</text>
+
+  <!-- Row 1: dog [0,1,0,0,0] -->
+  <rect x="83" y="60" width="50" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="108" y="77" text-anchor="middle" fill="var(--text3)" font-size="12">0</text>
+  <rect x="133" y="60" width="50" height="24" rx="4" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width=".5"/>
+  <text x="158" y="77" text-anchor="middle" fill="var(--purple-text)" font-size="12" font-weight="600">1</text>
+  <rect x="183" y="60" width="50" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="208" y="77" text-anchor="middle" fill="var(--text3)" font-size="12">0</text>
+  <rect x="233" y="60" width="50" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="258" y="77" text-anchor="middle" fill="var(--text3)" font-size="12">0</text>
+  <rect x="283" y="60" width="50" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="308" y="77" text-anchor="middle" fill="var(--text3)" font-size="12">0</text>
+
+  <!-- Row 2: bird [0,0,1,0,0] -->
+  <rect x="83" y="94" width="50" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="108" y="111" text-anchor="middle" fill="var(--text3)" font-size="12">0</text>
+  <rect x="133" y="94" width="50" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="158" y="111" text-anchor="middle" fill="var(--text3)" font-size="12">0</text>
+  <rect x="183" y="94" width="50" height="24" rx="4" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width=".5"/>
+  <text x="208" y="111" text-anchor="middle" fill="var(--purple-text)" font-size="12" font-weight="600">1</text>
+  <rect x="233" y="94" width="50" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="258" y="111" text-anchor="middle" fill="var(--text3)" font-size="12">0</text>
+  <rect x="283" y="94" width="50" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="308" y="111" text-anchor="middle" fill="var(--text3)" font-size="12">0</text>
+
+  <!-- Row 3: fish [0,0,0,1,0] -->
+  <rect x="83" y="128" width="50" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="108" y="145" text-anchor="middle" fill="var(--text3)" font-size="12">0</text>
+  <rect x="133" y="128" width="50" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="158" y="145" text-anchor="middle" fill="var(--text3)" font-size="12">0</text>
+  <rect x="183" y="128" width="50" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="208" y="145" text-anchor="middle" fill="var(--text3)" font-size="12">0</text>
+  <rect x="233" y="128" width="50" height="24" rx="4" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width=".5"/>
+  <text x="258" y="145" text-anchor="middle" fill="var(--purple-text)" font-size="12" font-weight="600">1</text>
+  <rect x="283" y="128" width="50" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="308" y="145" text-anchor="middle" fill="var(--text3)" font-size="12">0</text>
+
+  <!-- Row 4: car [0,0,0,0,1] -->
+  <rect x="83" y="162" width="50" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="108" y="179" text-anchor="middle" fill="var(--text3)" font-size="12">0</text>
+  <rect x="133" y="162" width="50" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="158" y="179" text-anchor="middle" fill="var(--text3)" font-size="12">0</text>
+  <rect x="183" y="162" width="50" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="208" y="179" text-anchor="middle" fill="var(--text3)" font-size="12">0</text>
+  <rect x="233" y="162" width="50" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="258" y="179" text-anchor="middle" fill="var(--text3)" font-size="12">0</text>
+  <rect x="283" y="162" width="50" height="24" rx="4" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width=".5"/>
+  <text x="308" y="179" text-anchor="middle" fill="var(--purple-text)" font-size="12" font-weight="600">1</text>
+
+  <!-- Annotation -->
+  <line x1="350" y1="38" x2="390" y2="38" stroke="var(--border)" stroke-width=".5" stroke-dasharray="3 3"/>
+  <rect x="395" y="24" width="270" height="56" rx="8" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4 3" fill="var(--bg)"/>
+  <text x="415" y="44" fill="var(--text2)" font-size="10">Each word gets exactly one slot.</text>
+  <text x="415" y="62" fill="var(--text2)" font-size="10">"cat" and "car" are equally far apart.</text>
+</svg>
+</div>
+
+<p>
+It works. The machine can now tell words apart. But notice the problem.
+In this system, "cat" and "dog" are exactly as different as "cat" and
+"car." Every pair of words sits at the same distance from every other.
+There is no notion of similarity. No sense that a cat and a dog are both
+animals, while a car is something else entirely.
+</p>
+
+<p>
+One-hot encoding is a starting point, not a destination. It gives the
+machine a vocabulary, but not understanding. To measure whether two
+things are similar, we need a different operation. Something that can
+compare two lists of numbers and produce a single verdict.
+</p>
+
+<h2>How close are two thoughts?</h2>
+
+<p>
+Take two lists of numbers, the same length. Multiply the first pair,
+then the second, then the third, all the way down. Add everything up.
+You get a single number.
+</p>
+
+<p>
+That number has a name. It is called the dot product. And it tells you
+something surprisingly deep: how much two signals point in the same
+direction.
+</p>
+
+<p>
+Watch what happens with concrete numbers. Take
+<code>a = [2, 1, 3]</code> and <code>b = [4, 0, 2]</code>. Multiply
+each pair: <code>2&times;4 = 8</code>, <code>1&times;0 = 0</code>,
+<code>3&times;2 = 6</code>. Add them: <code>8 + 0 + 6 = 14</code>.
+</p>
+
+<div class="diagram-section">
+<svg width="100%" viewBox="0 0 680 210">
+  <!-- Vector A -->
+  <text x="30" y="20" fill="var(--text2)" font-size="10" font-weight="600">a</text>
+  <rect x="50" y="6" width="50" height="26" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="75" y="24" text-anchor="middle" fill="var(--blue-text)" font-size="13" font-weight="600">2</text>
+  <rect x="106" y="6" width="50" height="26" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="131" y="24" text-anchor="middle" fill="var(--blue-text)" font-size="13" font-weight="600">1</text>
+  <rect x="162" y="6" width="50" height="26" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="187" y="24" text-anchor="middle" fill="var(--blue-text)" font-size="13" font-weight="600">3</text>
+
+  <!-- Vector B -->
+  <text x="30" y="64" fill="var(--text2)" font-size="10" font-weight="600">b</text>
+  <rect x="50" y="50" width="50" height="26" rx="4" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".5"/>
+  <text x="75" y="68" text-anchor="middle" fill="var(--coral-text)" font-size="13" font-weight="600">4</text>
+  <rect x="106" y="50" width="50" height="26" rx="4" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".5"/>
+  <text x="131" y="68" text-anchor="middle" fill="var(--coral-text)" font-size="13" font-weight="600">0</text>
+  <rect x="162" y="50" width="50" height="26" rx="4" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".5"/>
+  <text x="187" y="68" text-anchor="middle" fill="var(--coral-text)" font-size="13" font-weight="600">2</text>
+
+  <!-- Multiply symbol and lines -->
+  <text x="75" y="96" text-anchor="middle" fill="var(--text3)" font-size="11">&times;</text>
+  <text x="131" y="96" text-anchor="middle" fill="var(--text3)" font-size="11">&times;</text>
+  <text x="187" y="96" text-anchor="middle" fill="var(--text3)" font-size="11">&times;</text>
+
+  <!-- Element-wise products -->
+  <rect x="50" y="104" width="50" height="26" rx="4" fill="var(--bg2)" stroke="var(--border)" stroke-width=".5"/>
+  <text x="75" y="122" text-anchor="middle" fill="var(--text)" font-size="13" font-weight="600">8</text>
+  <rect x="106" y="104" width="50" height="26" rx="4" fill="var(--bg2)" stroke="var(--border)" stroke-width=".5"/>
+  <text x="131" y="122" text-anchor="middle" fill="var(--text)" font-size="13" font-weight="600">0</text>
+  <rect x="162" y="104" width="50" height="26" rx="4" fill="var(--bg2)" stroke="var(--border)" stroke-width=".5"/>
+  <text x="187" y="122" text-anchor="middle" fill="var(--text)" font-size="13" font-weight="600">6</text>
+
+  <!-- Calculation labels -->
+  <text x="75" y="150" text-anchor="middle" fill="var(--text3)" font-size="9">2 &times; 4</text>
+  <text x="131" y="150" text-anchor="middle" fill="var(--text3)" font-size="9">1 &times; 0</text>
+  <text x="187" y="150" text-anchor="middle" fill="var(--text3)" font-size="9">3 &times; 2</text>
+
+  <!-- Sum arrow -->
+  <line x1="75" y1="160" x2="131" y2="180" stroke="var(--text3)" stroke-width=".5"/>
+  <line x1="131" y1="160" x2="131" y2="180" stroke="var(--text3)" stroke-width=".5"/>
+  <line x1="187" y1="160" x2="131" y2="180" stroke="var(--text3)" stroke-width=".5"/>
+  <text x="131" y="175" text-anchor="middle" fill="var(--text3)" font-size="9">+</text>
+
+  <!-- Result -->
+  <rect x="106" y="184" width="50" height="26" rx="6" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width="1"/>
+  <text x="131" y="202" text-anchor="middle" fill="var(--purple-text)" font-size="14" font-weight="600">14</text>
+
+  <!-- Right side: explanation -->
+  <rect x="320" y="30" width="320" height="110" rx="8" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4 3" fill="var(--bg)"/>
+  <text x="340" y="54" fill="var(--text)" font-size="11" font-weight="600">The dot product measures agreement.</text>
+  <text x="340" y="78" fill="var(--text2)" font-size="10">Same direction = large positive</text>
+  <text x="340" y="96" fill="var(--text2)" font-size="10">Perpendicular = zero</text>
+  <text x="340" y="114" fill="var(--text2)" font-size="10">Opposite direction = negative</text>
+</svg>
+</div>
+
+<p>
+The result, 14, is positive and fairly large. That means these two
+vectors are pointing in a roughly similar direction. If the vectors
+represented, say, the meaning of two words, a large dot product would
+mean those words are related. A dot product near zero would mean they
+have nothing in common.
+</p>
+
+<p>
+This is exactly what one-hot encoding lacked. When you take the dot
+product of two different one-hot vectors, you always get zero, because
+their ones never line up. But if you replace those sparse vectors with
+denser ones, learned by a model, where "cat" and "kitten" happen to
+have similar numbers in similar slots, then the dot product naturally
+tells you they are related.
+</p>
+
+<p>
+One dot product compares two vectors. But what if you have hundreds of
+vectors and you need to compare every one to every other? Doing them one
+at a time would be painfully slow. There is a faster way.
+</p>
+
+<h2>Many questions at once</h2>
+
+<p>
+Consider this: a dot product takes a row and a column, multiplies pairs,
+and sums. What if you stacked all your rows into one block and all your
+columns into another? Then every cell in the result would be one dot
+product. That is matrix multiplication.
+</p>
+
+<p>
+Follow the numbers. Take a matrix A with 3 rows and 2 columns, and a
+matrix B with 2 rows and 3 columns. When you multiply them, you get a
+3-by-3 result. Each cell is the dot product of one row from A and one
+column from B.
+</p>
+
+<div class="diagram-section">
+<svg width="100%" viewBox="0 0 680 310">
+  <!-- Matrix A (3x2) -->
+  <text x="20" y="14" fill="var(--text2)" font-size="10" font-weight="600">A (3&times;2)</text>
+  <!-- Row 0 -->
+  <rect x="20" y="24" width="44" height="28" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="42" y="43" text-anchor="middle" fill="var(--blue-text)" font-size="12" font-weight="600">1</text>
+  <rect x="68" y="24" width="44" height="28" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="90" y="43" text-anchor="middle" fill="var(--blue-text)" font-size="12" font-weight="600">2</text>
+  <!-- Row 1 -->
+  <rect x="20" y="56" width="44" height="28" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="42" y="75" text-anchor="middle" fill="var(--blue-text)" font-size="12" font-weight="600">3</text>
+  <rect x="68" y="56" width="44" height="28" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="90" y="75" text-anchor="middle" fill="var(--blue-text)" font-size="12" font-weight="600">4</text>
+  <!-- Row 2 -->
+  <rect x="20" y="88" width="44" height="28" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="42" y="107" text-anchor="middle" fill="var(--blue-text)" font-size="12" font-weight="600">5</text>
+  <rect x="68" y="88" width="44" height="28" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="90" y="107" text-anchor="middle" fill="var(--blue-text)" font-size="12" font-weight="600">6</text>
+
+  <!-- Multiply sign -->
+  <text x="130" y="75" text-anchor="middle" fill="var(--text3)" font-size="16">&times;</text>
+
+  <!-- Matrix B (2x3) -->
+  <text x="155" y="14" fill="var(--text2)" font-size="10" font-weight="600">B (2&times;3)</text>
+  <!-- Row 0 -->
+  <rect x="155" y="24" width="44" height="28" rx="4" fill="var(--amber-bg)" stroke="var(--amber-border)" stroke-width=".5"/>
+  <text x="177" y="43" text-anchor="middle" fill="var(--amber-text)" font-size="12" font-weight="600">7</text>
+  <rect x="203" y="24" width="44" height="28" rx="4" fill="var(--amber-bg)" stroke="var(--amber-border)" stroke-width=".5"/>
+  <text x="225" y="43" text-anchor="middle" fill="var(--amber-text)" font-size="12" font-weight="600">8</text>
+  <rect x="251" y="24" width="44" height="28" rx="4" fill="var(--amber-bg)" stroke="var(--amber-border)" stroke-width=".5"/>
+  <text x="273" y="43" text-anchor="middle" fill="var(--amber-text)" font-size="12" font-weight="600">9</text>
+  <!-- Row 1 -->
+  <rect x="155" y="56" width="44" height="28" rx="4" fill="var(--amber-bg)" stroke="var(--amber-border)" stroke-width=".5"/>
+  <text x="177" y="75" text-anchor="middle" fill="var(--amber-text)" font-size="12" font-weight="600">10</text>
+  <rect x="203" y="56" width="44" height="28" rx="4" fill="var(--amber-bg)" stroke="var(--amber-border)" stroke-width=".5"/>
+  <text x="225" y="75" text-anchor="middle" fill="var(--amber-text)" font-size="12" font-weight="600">11</text>
+  <rect x="251" y="56" width="44" height="28" rx="4" fill="var(--amber-bg)" stroke="var(--amber-border)" stroke-width=".5"/>
+  <text x="273" y="75" text-anchor="middle" fill="var(--amber-text)" font-size="12" font-weight="600">12</text>
+
+  <!-- Equals sign -->
+  <text x="315" y="75" text-anchor="middle" fill="var(--text3)" font-size="16">=</text>
+
+  <!-- Result matrix (3x3) -->
+  <text x="340" y="14" fill="var(--text2)" font-size="10" font-weight="600">Result (3&times;3)</text>
+  <!-- Row 0 -->
+  <rect x="340" y="24" width="52" height="28" rx="4" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width="1.5"/>
+  <text x="366" y="43" text-anchor="middle" fill="var(--teal-text)" font-size="12" font-weight="600">27</text>
+  <rect x="396" y="24" width="52" height="28" rx="4" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width=".5"/>
+  <text x="422" y="43" text-anchor="middle" fill="var(--teal-text)" font-size="12" font-weight="600">30</text>
+  <rect x="452" y="24" width="52" height="28" rx="4" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width=".5"/>
+  <text x="478" y="43" text-anchor="middle" fill="var(--teal-text)" font-size="12" font-weight="600">33</text>
+  <!-- Row 1 -->
+  <rect x="340" y="56" width="52" height="28" rx="4" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width=".5"/>
+  <text x="366" y="75" text-anchor="middle" fill="var(--teal-text)" font-size="12" font-weight="600">61</text>
+  <rect x="396" y="56" width="52" height="28" rx="4" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width=".5"/>
+  <text x="422" y="75" text-anchor="middle" fill="var(--teal-text)" font-size="12" font-weight="600">68</text>
+  <rect x="452" y="56" width="52" height="28" rx="4" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width=".5"/>
+  <text x="478" y="75" text-anchor="middle" fill="var(--teal-text)" font-size="12" font-weight="600">75</text>
+  <!-- Row 2 -->
+  <rect x="340" y="88" width="52" height="28" rx="4" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width=".5"/>
+  <text x="366" y="107" text-anchor="middle" fill="var(--teal-text)" font-size="12" font-weight="600">95</text>
+  <rect x="396" y="88" width="52" height="28" rx="4" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width=".5"/>
+  <text x="422" y="107" text-anchor="middle" fill="var(--teal-text)" font-size="12" font-weight="600">106</text>
+  <rect x="452" y="88" width="52" height="28" rx="4" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width=".5"/>
+  <text x="478" y="107" text-anchor="middle" fill="var(--teal-text)" font-size="12" font-weight="600">117</text>
+
+  <!-- Highlight trace for cell [0,0] = 27 -->
+  <!-- Row highlight on A -->
+  <rect x="18" y="22" width="96" height="32" rx="6" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <!-- Column highlight on B -->
+  <rect x="153" y="22" width="48" height="64" rx="6" fill="none" stroke="var(--amber)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <!-- Cell highlight on Result -->
+  <rect x="338" y="22" width="56" height="32" rx="6" fill="none" stroke="var(--teal)" stroke-width="2"/>
+
+  <!-- Detail box showing the dot product -->
+  <line x1="366" y1="56" x2="366" y2="150" stroke="var(--border)" stroke-width=".5" stroke-dasharray="3 3"/>
+  <rect x="280" y="155" width="250" height="48" rx="8" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4 3" fill="var(--bg)"/>
+  <text x="300" y="176" fill="var(--text2)" font-size="10">Row 0 of A &middot; Col 0 of B:</text>
+  <text x="300" y="194" fill="var(--text)" font-size="11" font-weight="600">1&times;7 + 2&times;10 = 7 + 20 = 27</text>
+
+  <!-- Bottom note -->
+  <text x="20" y="240" fill="var(--text2)" font-size="11">Every cell in the result is one dot product.</text>
+  <text x="20" y="258" fill="var(--text2)" font-size="11">A 3&times;2 matrix times a 2&times;3 matrix produces a 3&times;3 matrix.</text>
+  <text x="20" y="276" fill="var(--text2)" font-size="11">The inner dimensions (2 and 2) must match. The outer dimensions (3 and 3) shape the result.</text>
+</svg>
+</div>
+
+<p>
+This is the engine underneath nearly everything in deep learning. When a
+model processes an image, it multiplies a batch of pixel values by a
+matrix of learned weights. When it reads a sentence, it multiplies token
+vectors by weight matrices. The operation is always the same: rows meet
+columns, dot products fill cells.
+</p>
+
+<p>
+But the raw numbers that come out of a matrix multiply can be anything.
+Large, small, negative, wildly uneven. Before a model can use them to
+make decisions, it needs to calm them down and turn them into something
+interpretable. It needs to choose what matters.
+</p>
+
+<h2>Choosing what matters</h2>
+
+<p>
+Picture a row of raw scores that just came out of a matrix multiply:
+<code>[2.0, 1.0, 0.1, -1.0]</code>. The first value is the largest,
+but what does "largest" mean in context? Is 2.0 important or just
+slightly less unimportant than the rest?
+</p>
+
+<p>
+Softmax answers this question. It takes each score, raises
+<code>e</code> (roughly 2.718) to that power, then divides by the sum of
+all such values. The result is a set of positive numbers that add up to
+exactly 1. They behave like probabilities.
+</p>
+
+<div class="diagram-section">
+<svg width="100%" viewBox="0 0 680 210">
+  <!-- Title -->
+  <text x="20" y="18" fill="var(--text2)" font-size="10" font-weight="600">Raw scores</text>
+  <text x="370" y="18" fill="var(--text2)" font-size="10" font-weight="600">After softmax</text>
+
+  <!-- Raw score bars -->
+  <!-- 2.0 -->
+  <rect x="40" y="34" width="60" height="100" rx="4" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".5"/>
+  <text x="70" y="86" text-anchor="middle" fill="var(--coral-text)" font-size="13" font-weight="600">2.0</text>
+  <!-- 1.0 -->
+  <rect x="108" y="84" width="60" height="50" rx="4" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".5"/>
+  <text x="138" y="114" text-anchor="middle" fill="var(--coral-text)" font-size="13" font-weight="600">1.0</text>
+  <!-- 0.1 -->
+  <rect x="176" y="124" width="60" height="10" rx="4" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".5"/>
+  <text x="206" y="155" text-anchor="middle" fill="var(--coral-text)" font-size="11">0.1</text>
+  <!-- -1.0 -->
+  <rect x="244" y="134" width="60" height="0" rx="4" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".5"/>
+  <line x1="244" y1="134" x2="304" y2="134" stroke="var(--coral-border)" stroke-width="1"/>
+  <text x="274" y="155" text-anchor="middle" fill="var(--coral-text)" font-size="11">-1.0</text>
+
+  <!-- Arrow -->
+  <text x="335" y="90" text-anchor="middle" fill="var(--text3)" font-size="20">&rarr;</text>
+  <text x="335" y="108" text-anchor="middle" fill="var(--text3)" font-size="9">softmax</text>
+
+  <!-- Softmax bars (scaled: 0.59, 0.22, 0.09, 0.03 — renormalized to visual heights) -->
+  <!-- 0.59 -->
+  <rect x="390" y="34" width="60" height="100" rx="4" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width=".5"/>
+  <text x="420" y="86" text-anchor="middle" fill="var(--purple-text)" font-size="13" font-weight="600">0.59</text>
+  <!-- 0.22 -->
+  <rect x="458" y="97" width="60" height="37" rx="4" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width=".5"/>
+  <text x="488" y="120" text-anchor="middle" fill="var(--purple-text)" font-size="12" font-weight="600">0.22</text>
+  <!-- 0.09 -->
+  <rect x="526" y="119" width="60" height="15" rx="4" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width=".5"/>
+  <text x="556" y="155" text-anchor="middle" fill="var(--purple-text)" font-size="11">0.09</text>
+  <!-- 0.03 (actually ~0.03, but let's use the real value 0.03) -->
+  <rect x="594" y="129" width="60" height="5" rx="2" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width=".5"/>
+  <text x="624" y="155" text-anchor="middle" fill="var(--purple-text)" font-size="11">0.03</text>
+
+  <!-- Baseline -->
+  <line x1="40" y1="134" x2="304" y2="134" stroke="var(--border)" stroke-width=".5"/>
+  <line x1="390" y1="134" x2="654" y2="134" stroke="var(--border)" stroke-width=".5"/>
+
+  <!-- Sum annotation -->
+  <text x="522" y="180" text-anchor="middle" fill="var(--text3)" font-size="10">0.59 + 0.22 + 0.09 + 0.03 &asymp; 1.0</text>
+
+  <!-- Note -->
+  <text x="20" y="204" fill="var(--text2)" font-size="10">The winner takes most of the weight. The losers nearly vanish.</text>
+</svg>
+</div>
+
+<p>
+Look at what happened. The input score of 2.0 was only twice as large as
+1.0, but after softmax it claims 59% of the total weight. The score of
+-1.0 gets almost nothing. Softmax amplifies differences. It makes the
+model decisive.
+</p>
+
+<p>
+This is not just a mathematical convenience. Softmax is how every modern
+language model and vision model makes choices. When a model "pays
+attention" to one part of a sentence more than another, softmax is the
+mechanism doing the choosing. Which brings us to the operation that ties
+everything together.
+</p>
+
+<h2>Paying attention</h2>
+
+<p>
+Here is the core idea behind every transformer, every large language
+model, every modern vision system. It is built from the pieces you
+already know.
+</p>
+
+<p>
+Suppose you have a sentence: "The cat sat on the mat." Each word starts
+as a vector of numbers, its embedding. The model's job is to figure out,
+for each word, which other words in the sentence matter to it. When the
+model looks at "sat," it should realize that "cat" is important (the cat
+is the one sitting), while "the" is less so.
+</p>
+
+<p>
+But each word's embedding is just one vector. It contains everything
+about that word crammed into one list of numbers. That is too blunt.
+To compare words in a useful way, the model needs to pull apart each
+word into separate roles. So it creates three new vectors from each
+word, using three different weight matrices.
+</p>
+
+<h2>Three roles, one word</h2>
+
+<p>
+Take the word "sat." The model multiplies its embedding by a weight
+matrix called W_Q and gets a new vector: the query. Think of the query
+as a question the word is asking: "Who did the sitting? What was sat
+on?" It encodes what this word is looking for.
+</p>
+
+<p>
+Then the model multiplies the same embedding by a different weight
+matrix, W_K, and gets the key. The key is like a label. It says "here
+is what I am." For the word "cat," the key might encode "I am the
+subject, I am an animal, I am the actor in this sentence."
+</p>
+
+<p>
+Finally, the model multiplies the embedding by a third matrix, W_V,
+and gets the value. The value is the actual content that gets passed
+forward. If "cat" turns out to be relevant to "sat," the value of
+"cat" is what gets blended into the output for "sat."
+</p>
+
+<p>
+Where do these weight matrices come from? The model learns them during
+training. Nobody writes them by hand. The model sees millions of
+sentences and gradually adjusts W_Q, W_K, and W_V so that queries and
+keys of related words produce large dot products, and unrelated words
+produce small ones. We will see exactly how that learning works later
+in this chapter.
+</p>
+
+<h2>The matrix multiply you already know</h2>
+
+<p>
+This is where the pieces from earlier in this chapter click together.
+Producing a query from an embedding is just a matrix multiplication,
+the same operation you saw in "Many questions at once."
+</p>
+
+<p>
+Suppose "sat" has a tiny 2D embedding: <code>[0, 1]</code>. And suppose
+the model has learned a weight matrix W_Q:
+</p>
+
+<div class="diagram-section">
+<svg width="100%" viewBox="0 0 520 160">
+  <text x="20" y="16" fill="var(--text2)" font-size="10" font-weight="600">Embedding &times; W_Q = Query</text>
+
+  <!-- sat embedding -->
+  <text x="42" y="42" text-anchor="middle" fill="var(--text3)" font-size="9">sat</text>
+  <rect x="16" y="48" width="24" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="28" y="65" text-anchor="middle" fill="var(--gray-text)" font-size="11" font-weight="600">0</text>
+  <rect x="44" y="48" width="24" height="24" rx="4" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="56" y="65" text-anchor="middle" fill="var(--gray-text)" font-size="11" font-weight="600">1</text>
+
+  <!-- multiply sign -->
+  <text x="84" y="65" text-anchor="middle" fill="var(--text3)" font-size="14">&times;</text>
+
+  <!-- W_Q matrix -->
+  <text x="128" y="42" text-anchor="middle" fill="var(--text3)" font-size="9">W_Q</text>
+  <rect x="100" y="48" width="24" height="24" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="112" y="65" text-anchor="middle" fill="var(--blue-text)" font-size="11" font-weight="600">1</text>
+  <rect x="128" y="48" width="24" height="24" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="140" y="65" text-anchor="middle" fill="var(--blue-text)" font-size="11" font-weight="600">0</text>
+  <rect x="100" y="76" width="24" height="24" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="112" y="93" text-anchor="middle" fill="var(--blue-text)" font-size="11" font-weight="600">2</text>
+  <rect x="128" y="76" width="24" height="24" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="140" y="93" text-anchor="middle" fill="var(--blue-text)" font-size="11" font-weight="600">1</text>
+
+  <!-- equals -->
+  <text x="170" y="65" text-anchor="middle" fill="var(--text3)" font-size="14">=</text>
+
+  <!-- Result q_sat -->
+  <text x="210" y="42" text-anchor="middle" fill="var(--text3)" font-size="9">q_sat</text>
+  <rect x="188" y="48" width="24" height="24" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width="1.5"/>
+  <text x="200" y="65" text-anchor="middle" fill="var(--blue-text)" font-size="11" font-weight="600">2</text>
+  <rect x="216" y="48" width="24" height="24" rx="4" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width="1.5"/>
+  <text x="228" y="65" text-anchor="middle" fill="var(--blue-text)" font-size="11" font-weight="600">1</text>
+
+  <!-- Arithmetic detail -->
+  <rect x="270" y="38" width="240" height="68" rx="8" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4 3" fill="var(--bg)"/>
+  <text x="290" y="58" fill="var(--text)" font-size="10" font-weight="600">The dot products you already know:</text>
+  <text x="290" y="78" fill="var(--text2)" font-size="10">q_sat[0] = 0&times;1 + 1&times;2 = 2</text>
+  <text x="290" y="94" fill="var(--text2)" font-size="10">q_sat[1] = 0&times;0 + 1&times;1 = 1</text>
+
+  <!-- Bottom note -->
+  <text x="260" y="140" text-anchor="middle" fill="var(--text3)" font-size="10">Same operation as before. Row times column, one dot product per cell.</text>
+</svg>
+</div>
+
+<p>
+The same multiplication happens for every word, and for each of the three
+weight matrices. After all the multiplies, we have queries, keys, and
+values for every word.
+</p>
+
+<div class="diagram-section">
+<svg width="100%" viewBox="0 0 520 240">
+  <!-- Column headers -->
+  <text x="46" y="16" text-anchor="middle" fill="var(--text2)" font-size="10" font-weight="600">Embeddings</text>
+  <text x="168" y="16" text-anchor="middle" fill="var(--blue-text)" font-size="10" font-weight="600">Q (W_Q)</text>
+  <text x="286" y="16" text-anchor="middle" fill="var(--blue-text)" font-size="10" font-weight="600">K (W_K)</text>
+  <text x="404" y="16" text-anchor="middle" fill="var(--teal-text)" font-size="10" font-weight="600">V (W_V)</text>
+
+  <!-- === Row 1: cat === -->
+  <rect x="12" y="30" width="68" height="28" rx="6" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="46" y="49" text-anchor="middle" fill="var(--gray-text)" font-size="10" font-weight="600">cat</text>
+  <!-- cat → q_cat -->
+  <line x1="80" y1="44" x2="130" y2="44" stroke="var(--text3)" stroke-width="1"/>
+  <polygon points="127,40 134,44 127,48" fill="var(--text3)"/>
+  <rect x="134" y="30" width="68" height="28" rx="5" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="168" y="49" text-anchor="middle" fill="var(--blue-text)" font-size="10" font-weight="600">q_cat</text>
+  <!-- cat → k_cat -->
+  <line x1="202" y1="44" x2="248" y2="44" stroke="var(--text3)" stroke-width="1" stroke-dasharray="3 3"/>
+  <polygon points="245,40 252,44 245,48" fill="var(--text3)"/>
+  <rect x="252" y="30" width="68" height="28" rx="5" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="286" y="49" text-anchor="middle" fill="var(--blue-text)" font-size="10" font-weight="600">k_cat</text>
+  <!-- cat → v_cat -->
+  <line x1="320" y1="44" x2="366" y2="44" stroke="var(--text3)" stroke-width="1" stroke-dasharray="3 3"/>
+  <polygon points="363,40 370,44 363,48" fill="var(--text3)"/>
+  <rect x="370" y="30" width="68" height="28" rx="5" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width=".5"/>
+  <text x="404" y="49" text-anchor="middle" fill="var(--teal-text)" font-size="10" font-weight="600">v_cat</text>
+
+  <!-- === Row 2: sat (highlighted) === -->
+  <rect x="12" y="68" width="68" height="28" rx="6" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width="1.5"/>
+  <text x="46" y="87" text-anchor="middle" fill="var(--gray-text)" font-size="10" font-weight="600">sat</text>
+  <!-- sat → q_sat -->
+  <line x1="80" y1="82" x2="130" y2="82" stroke="var(--text3)" stroke-width="1"/>
+  <polygon points="127,78 134,82 127,86" fill="var(--text3)"/>
+  <rect x="134" y="68" width="68" height="28" rx="5" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width="1.5"/>
+  <text x="168" y="87" text-anchor="middle" fill="var(--blue-text)" font-size="10" font-weight="600">q_sat</text>
+  <!-- sat → k_sat -->
+  <line x1="202" y1="82" x2="248" y2="82" stroke="var(--text3)" stroke-width="1" stroke-dasharray="3 3"/>
+  <polygon points="245,78 252,82 245,86" fill="var(--text3)"/>
+  <rect x="252" y="68" width="68" height="28" rx="5" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width="1.5"/>
+  <text x="286" y="87" text-anchor="middle" fill="var(--blue-text)" font-size="10" font-weight="600">k_sat</text>
+  <!-- sat → v_sat -->
+  <line x1="320" y1="82" x2="366" y2="82" stroke="var(--text3)" stroke-width="1" stroke-dasharray="3 3"/>
+  <polygon points="363,78 370,82 363,86" fill="var(--text3)"/>
+  <rect x="370" y="68" width="68" height="28" rx="5" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width="1.5"/>
+  <text x="404" y="87" text-anchor="middle" fill="var(--teal-text)" font-size="10" font-weight="600">v_sat</text>
+
+  <!-- === Row 3: mat === -->
+  <rect x="12" y="106" width="68" height="28" rx="6" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="46" y="125" text-anchor="middle" fill="var(--gray-text)" font-size="10" font-weight="600">mat</text>
+  <!-- mat → q_mat -->
+  <line x1="80" y1="120" x2="130" y2="120" stroke="var(--text3)" stroke-width="1"/>
+  <polygon points="127,116 134,120 127,124" fill="var(--text3)"/>
+  <rect x="134" y="106" width="68" height="28" rx="5" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="168" y="125" text-anchor="middle" fill="var(--blue-text)" font-size="10" font-weight="600">q_mat</text>
+  <!-- mat → k_mat -->
+  <line x1="202" y1="120" x2="248" y2="120" stroke="var(--text3)" stroke-width="1" stroke-dasharray="3 3"/>
+  <polygon points="245,116 252,120 245,124" fill="var(--text3)"/>
+  <rect x="252" y="106" width="68" height="28" rx="5" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="286" y="125" text-anchor="middle" fill="var(--blue-text)" font-size="10" font-weight="600">k_mat</text>
+  <!-- mat → v_mat -->
+  <line x1="320" y1="120" x2="366" y2="120" stroke="var(--text3)" stroke-width="1" stroke-dasharray="3 3"/>
+  <polygon points="363,116 370,120 363,124" fill="var(--text3)"/>
+  <rect x="370" y="106" width="68" height="28" rx="5" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width=".5"/>
+  <text x="404" y="125" text-anchor="middle" fill="var(--teal-text)" font-size="10" font-weight="600">v_mat</text>
+
+  <!-- === Annotation below === -->
+  <rect x="40" y="152" width="440" height="76" rx="8" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4 3" fill="var(--bg)"/>
+  <text x="260" y="174" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="600">Same word, three roles:</text>
+  <text x="260" y="194" text-anchor="middle" fill="var(--blue-text)" font-size="10">Q asks "what am I looking for?"  &middot;  K says "here is what I am"</text>
+  <text x="260" y="214" text-anchor="middle" fill="var(--teal-text)" font-size="10">V carries "my actual content" &mdash; the information that gets blended</text>
+</svg>
+</div>
+
+<h2>Following the numbers</h2>
+
+<p>
+Now let us trace every step with real numbers you can verify by hand.
+We computed <code>q_sat = [2, 1]</code>. Suppose the learned W_K matrix
+produced these keys: <code>k_cat = [1, 2]</code>,
+<code>k_sat = [0, 1]</code>, <code>k_mat = [1, 0]</code>.
+</p>
+
+<p>
+The dot product, the operation you learned two sections ago, now
+measures how much each key matches the query.
+</p>
+
+<div class="diagram-section">
+<svg width="100%" viewBox="0 0 520 210">
+  <text x="20" y="16" fill="var(--text2)" font-size="10" font-weight="600">Step 1: Dot products (the same operation from earlier)</text>
+
+  <!-- Row 1: q_sat · k_cat -->
+  <rect x="20" y="32" width="50" height="24" rx="5" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width="1.5"/>
+  <text x="45" y="49" text-anchor="middle" fill="var(--blue-text)" font-size="10" font-weight="600">2, 1</text>
+  <text x="82" y="49" text-anchor="middle" fill="var(--text3)" font-size="10">&middot;</text>
+  <rect x="94" y="32" width="50" height="24" rx="5" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="119" y="49" text-anchor="middle" fill="var(--blue-text)" font-size="10" font-weight="600">1, 2</text>
+  <text x="160" y="49" fill="var(--text2)" font-size="10">= 2&times;1 + 1&times;2 =</text>
+  <rect x="270" y="32" width="36" height="24" rx="5" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width="1.5"/>
+  <text x="288" y="49" text-anchor="middle" fill="var(--coral-text)" font-size="12" font-weight="600">4</text>
+  <text x="320" y="49" fill="var(--text3)" font-size="9">cat is relevant</text>
+
+  <!-- Row 2: q_sat · k_sat -->
+  <rect x="20" y="66" width="50" height="24" rx="5" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width="1.5"/>
+  <text x="45" y="83" text-anchor="middle" fill="var(--blue-text)" font-size="10" font-weight="600">2, 1</text>
+  <text x="82" y="83" text-anchor="middle" fill="var(--text3)" font-size="10">&middot;</text>
+  <rect x="94" y="66" width="50" height="24" rx="5" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="119" y="83" text-anchor="middle" fill="var(--blue-text)" font-size="10" font-weight="600">0, 1</text>
+  <text x="160" y="83" fill="var(--text2)" font-size="10">= 2&times;0 + 1&times;1 =</text>
+  <rect x="270" y="66" width="36" height="24" rx="5" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".5"/>
+  <text x="288" y="83" text-anchor="middle" fill="var(--coral-text)" font-size="12" font-weight="600">1</text>
+  <text x="320" y="83" fill="var(--text3)" font-size="9">sat is not</text>
+
+  <!-- Row 3: q_sat · k_mat -->
+  <rect x="20" y="100" width="50" height="24" rx="5" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width="1.5"/>
+  <text x="45" y="117" text-anchor="middle" fill="var(--blue-text)" font-size="10" font-weight="600">2, 1</text>
+  <text x="82" y="117" text-anchor="middle" fill="var(--text3)" font-size="10">&middot;</text>
+  <rect x="94" y="100" width="50" height="24" rx="5" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="119" y="117" text-anchor="middle" fill="var(--blue-text)" font-size="10" font-weight="600">1, 0</text>
+  <text x="160" y="117" fill="var(--text2)" font-size="10">= 2&times;1 + 1&times;0 =</text>
+  <rect x="270" y="100" width="36" height="24" rx="5" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".5"/>
+  <text x="288" y="117" text-anchor="middle" fill="var(--coral-text)" font-size="12" font-weight="600">2</text>
+  <text x="320" y="117" fill="var(--text3)" font-size="9">mat somewhat</text>
+
+  <!-- Labels -->
+  <text x="45" y="144" text-anchor="middle" fill="var(--text3)" font-size="9">q_sat</text>
+  <text x="119" y="144" text-anchor="middle" fill="var(--text3)" font-size="9">keys</text>
+  <text x="288" y="144" text-anchor="middle" fill="var(--text3)" font-size="9">scores</text>
+
+  <!-- Annotation -->
+  <rect x="80" y="158" width="360" height="40" rx="8" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4 3" fill="var(--bg)"/>
+  <text x="260" y="175" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="600">Score of 4 means "cat" is the most relevant word.</text>
+  <text x="260" y="191" text-anchor="middle" fill="var(--text3)" font-size="10">These are the raw scores. Next: softmax.</text>
+</svg>
+</div>
+
+<h2>Softmax in action</h2>
+
+<p>
+Remember softmax from earlier? Here it is doing real work. Take the
+raw scores <code>[4, 1, 2]</code> and raise <code>e</code> to each
+one's power.
+</p>
+
+<p>
+<code>e^4 &asymp; 54.6</code>, <code>e^1 &asymp; 2.7</code>,
+<code>e^2 &asymp; 7.4</code>. Add them up:
+<code>54.6 + 2.7 + 7.4 = 64.7</code>. Now divide each by the total.
+</p>
+
+<div class="diagram-section">
+<svg width="100%" viewBox="0 0 520 220">
+  <text x="20" y="16" fill="var(--text2)" font-size="10" font-weight="600">Step 2: Softmax turns scores into weights</text>
+
+  <!-- Row labels -->
+  <text x="70" y="42" text-anchor="middle" fill="var(--text3)" font-size="9">cat</text>
+  <text x="70" y="86" text-anchor="middle" fill="var(--text3)" font-size="9">sat</text>
+  <text x="70" y="130" text-anchor="middle" fill="var(--text3)" font-size="9">mat</text>
+
+  <!-- Score column -->
+  <text x="130" y="30" text-anchor="middle" fill="var(--text3)" font-size="9">score</text>
+  <rect x="110" y="34" width="40" height="20" rx="4" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".5"/>
+  <text x="130" y="49" text-anchor="middle" fill="var(--coral-text)" font-size="10" font-weight="600">4</text>
+  <rect x="110" y="78" width="40" height="20" rx="4" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".5"/>
+  <text x="130" y="93" text-anchor="middle" fill="var(--coral-text)" font-size="10" font-weight="600">1</text>
+  <rect x="110" y="122" width="40" height="20" rx="4" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".5"/>
+  <text x="130" y="137" text-anchor="middle" fill="var(--coral-text)" font-size="10" font-weight="600">2</text>
+
+  <!-- Arrow -->
+  <text x="168" y="49" fill="var(--text3)" font-size="10">&rarr;</text>
+  <text x="168" y="93" fill="var(--text3)" font-size="10">&rarr;</text>
+  <text x="168" y="137" fill="var(--text3)" font-size="10">&rarr;</text>
+
+  <!-- e^x column -->
+  <text x="216" y="30" text-anchor="middle" fill="var(--text3)" font-size="9">e^score</text>
+  <rect x="190" y="34" width="52" height="20" rx="4" fill="var(--bg2)" stroke="var(--border)" stroke-width=".5"/>
+  <text x="216" y="49" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="600">54.6</text>
+  <rect x="190" y="78" width="52" height="20" rx="4" fill="var(--bg2)" stroke="var(--border)" stroke-width=".5"/>
+  <text x="216" y="93" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="600">2.7</text>
+  <rect x="190" y="122" width="52" height="20" rx="4" fill="var(--bg2)" stroke="var(--border)" stroke-width=".5"/>
+  <text x="216" y="137" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="600">7.4</text>
+
+  <!-- Arrow -->
+  <text x="258" y="49" fill="var(--text3)" font-size="10">&rarr;</text>
+  <text x="258" y="93" fill="var(--text3)" font-size="10">&rarr;</text>
+  <text x="258" y="137" fill="var(--text3)" font-size="10">&rarr;</text>
+
+  <!-- Division column -->
+  <text x="316" y="30" text-anchor="middle" fill="var(--text3)" font-size="9">&divide; 64.7</text>
+  <rect x="280" y="34" width="72" height="20" rx="4" fill="var(--bg2)" stroke="var(--border)" stroke-width=".5"/>
+  <text x="316" y="49" text-anchor="middle" fill="var(--text2)" font-size="10">54.6 / 64.7</text>
+  <rect x="280" y="78" width="72" height="20" rx="4" fill="var(--bg2)" stroke="var(--border)" stroke-width=".5"/>
+  <text x="316" y="93" text-anchor="middle" fill="var(--text2)" font-size="10">2.7 / 64.7</text>
+  <rect x="280" y="122" width="72" height="20" rx="4" fill="var(--bg2)" stroke="var(--border)" stroke-width=".5"/>
+  <text x="316" y="137" text-anchor="middle" fill="var(--text2)" font-size="10">7.4 / 64.7</text>
+
+  <!-- Arrow -->
+  <text x="366" y="49" fill="var(--text3)" font-size="10">=</text>
+  <text x="366" y="93" fill="var(--text3)" font-size="10">=</text>
+  <text x="366" y="137" fill="var(--text3)" font-size="10">=</text>
+
+  <!-- Weight column -->
+  <text x="420" y="30" text-anchor="middle" fill="var(--text3)" font-size="9">weight</text>
+  <rect x="386" y="34" width="68" height="20" rx="4" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width="1.5"/>
+  <text x="420" y="49" text-anchor="middle" fill="var(--purple-text)" font-size="11" font-weight="600">0.84</text>
+  <rect x="386" y="78" width="68" height="20" rx="4" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width=".5"/>
+  <text x="420" y="93" text-anchor="middle" fill="var(--purple-text)" font-size="11" font-weight="600">0.04</text>
+  <rect x="386" y="122" width="68" height="20" rx="4" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width=".5"/>
+  <text x="420" y="137" text-anchor="middle" fill="var(--purple-text)" font-size="11" font-weight="600">0.11</text>
+
+  <!-- Sum annotation -->
+  <text x="420" y="168" text-anchor="middle" fill="var(--text3)" font-size="10">0.84 + 0.04 + 0.11 &asymp; 1.0</text>
+
+  <!-- Bottom note -->
+  <rect x="80" y="180" width="360" height="30" rx="8" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4 3" fill="var(--bg)"/>
+  <text x="260" y="200" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="600">84% of the attention goes to "cat." The model knows who sat.</text>
+</svg>
+</div>
+
+<p>
+Notice how the score of 4 versus 2 does not produce a 2:1 ratio. Softmax
+amplifies the gap. The winner, "cat," gets 84% of the weight. "Mat" gets
+11%. "Sat" gets just 4%. Small differences in scores become large
+differences in attention.
+</p>
+
+<h2>Blending the values</h2>
+
+<p>
+The final step uses these weights to blend the value vectors. This is
+the payoff: the output for "sat" will be mostly "cat"'s information.
+</p>
+
+<div class="diagram-section">
+<svg width="100%" viewBox="0 0 520 130">
+  <text x="20" y="16" fill="var(--text2)" font-size="10" font-weight="600">Step 3: Weighted sum of values</text>
+
+  <!-- Formula rows -->
+  <rect x="20" y="32" width="52" height="22" rx="4" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width="1.5"/>
+  <text x="46" y="48" text-anchor="middle" fill="var(--purple-text)" font-size="10" font-weight="600">0.84</text>
+  <text x="84" y="48" text-anchor="middle" fill="var(--text3)" font-size="10">&times;</text>
+  <rect x="96" y="32" width="52" height="22" rx="4" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width=".5"/>
+  <text x="122" y="48" text-anchor="middle" fill="var(--teal-text)" font-size="10" font-weight="600">v_cat</text>
+  <text x="162" y="48" text-anchor="middle" fill="var(--text3)" font-size="10">+</text>
+
+  <rect x="176" y="32" width="52" height="22" rx="4" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width=".5"/>
+  <text x="202" y="48" text-anchor="middle" fill="var(--purple-text)" font-size="10" font-weight="600">0.04</text>
+  <text x="240" y="48" text-anchor="middle" fill="var(--text3)" font-size="10">&times;</text>
+  <rect x="252" y="32" width="52" height="22" rx="4" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width=".5"/>
+  <text x="278" y="48" text-anchor="middle" fill="var(--teal-text)" font-size="10" font-weight="600">v_sat</text>
+  <text x="318" y="48" text-anchor="middle" fill="var(--text3)" font-size="10">+</text>
+
+  <rect x="332" y="32" width="52" height="22" rx="4" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width=".5"/>
+  <text x="358" y="48" text-anchor="middle" fill="var(--purple-text)" font-size="10" font-weight="600">0.11</text>
+  <text x="396" y="48" text-anchor="middle" fill="var(--text3)" font-size="10">&times;</text>
+  <rect x="408" y="32" width="52" height="22" rx="4" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width=".5"/>
+  <text x="434" y="48" text-anchor="middle" fill="var(--teal-text)" font-size="10" font-weight="600">v_mat</text>
+
+  <!-- Arrow down -->
+  <text x="260" y="72" text-anchor="middle" fill="var(--text3)" font-size="12">&darr;</text>
+
+  <!-- Output -->
+  <rect x="190" y="82" width="140" height="28" rx="6" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width="1.5"/>
+  <text x="260" y="101" text-anchor="middle" fill="var(--teal-text)" font-size="10" font-weight="600">output for "sat"</text>
+  <text x="260" y="126" text-anchor="middle" fill="var(--text3)" font-size="10">Mostly "cat." The word "sat" now knows who did the sitting.</text>
+</svg>
+</div>
+
+<p>
+Do this for every word simultaneously, and you have one attention layer.
+Stack dozens of them, and each layer refines the picture. Early layers
+might learn grammar. Later layers might learn meaning. By the end, each
+word's vector carries context from the entire sentence.
+</p>
+
+<h2>The full picture</h2>
+
+<p>
+Here is the complete mechanism. The input goes through three weight
+matrices to produce Q, K, and V. Queries and keys meet through matrix
+multiplication to produce scores. Softmax normalizes them. The weights
+multiply the values to produce the output.
+</p>
+
+<div class="diagram-section">
+<svg width="100%" viewBox="0 0 680 400">
+  <!-- === ROW 1: Input splits into Q, K, V === -->
+
+  <!-- Input X -->
+  <rect x="20" y="56" width="76" height="32" rx="6" fill="var(--gray-bg)" stroke="var(--gray-border)" stroke-width=".5"/>
+  <text x="58" y="76" text-anchor="middle" fill="var(--gray-text)" font-size="10" font-weight="600">Input X</text>
+
+  <!-- Horizontal line from Input, then vertical split -->
+  <line x1="96" y1="72" x2="130" y2="72" stroke="var(--text3)" stroke-width="1"/>
+  <!-- Vertical spine -->
+  <line x1="130" y1="28" x2="130" y2="120" stroke="var(--text3)" stroke-width="1"/>
+
+  <!-- Branch to Q (top) -->
+  <line x1="130" y1="28" x2="155" y2="28" stroke="var(--text3)" stroke-width="1"/>
+  <polygon points="152,24 159,28 152,32" fill="var(--text3)"/>
+  <text x="143" y="20" text-anchor="middle" fill="var(--text3)" font-size="9">W_Q</text>
+
+  <!-- Branch to K (middle) -->
+  <line x1="130" y1="72" x2="155" y2="72" stroke="var(--text3)" stroke-width="1"/>
+  <polygon points="152,68 159,72 152,76" fill="var(--text3)"/>
+  <text x="143" y="64" text-anchor="middle" fill="var(--text3)" font-size="9">W_K</text>
+
+  <!-- Branch to V (bottom) -->
+  <line x1="130" y1="120" x2="155" y2="120" stroke="var(--text3)" stroke-width="1"/>
+  <polygon points="152,116 159,120 152,124" fill="var(--text3)"/>
+  <text x="143" y="112" text-anchor="middle" fill="var(--text3)" font-size="9">W_V</text>
+
+  <!-- Q box -->
+  <rect x="160" y="12" width="56" height="32" rx="6" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="188" y="33" text-anchor="middle" fill="var(--blue-text)" font-size="11" font-weight="600">Q</text>
+
+  <!-- K box -->
+  <rect x="160" y="56" width="56" height="32" rx="6" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="188" y="77" text-anchor="middle" fill="var(--blue-text)" font-size="11" font-weight="600">K</text>
+
+  <!-- V box -->
+  <rect x="160" y="104" width="56" height="32" rx="6" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width=".5"/>
+  <text x="188" y="125" text-anchor="middle" fill="var(--teal-text)" font-size="11" font-weight="600">V</text>
+
+  <!-- === ROW 2: Q and K converge into Scores === -->
+
+  <!-- Q arrow down-right to matmul point -->
+  <line x1="216" y1="28" x2="250" y2="28" stroke="var(--text3)" stroke-width="1"/>
+  <line x1="250" y1="28" x2="250" y2="46" stroke="var(--text3)" stroke-width="1"/>
+
+  <!-- K arrow right to matmul point -->
+  <line x1="216" y1="72" x2="250" y2="72" stroke="var(--text3)" stroke-width="1"/>
+  <line x1="250" y1="72" x2="250" y2="56" stroke="var(--text3)" stroke-width="1"/>
+
+  <!-- Matmul circle -->
+  <circle cx="250" cy="50" r="10" fill="var(--bg)" stroke="var(--blue-border)" stroke-width="1"/>
+  <text x="250" y="54" text-anchor="middle" fill="var(--blue-text)" font-size="10" font-weight="600">&times;</text>
+  <text x="270" y="74" text-anchor="middle" fill="var(--text3)" font-size="9">Q &times; K&#7488;</text>
+
+  <!-- Arrow to Scores -->
+  <line x1="260" y1="50" x2="290" y2="50" stroke="var(--text3)" stroke-width="1"/>
+  <polygon points="287,46 294,50 287,54" fill="var(--text3)"/>
+
+  <!-- Scores box -->
+  <rect x="296" y="34" width="80" height="32" rx="6" fill="var(--blue-bg)" stroke="var(--blue-border)" stroke-width=".5"/>
+  <text x="336" y="54" text-anchor="middle" fill="var(--blue-text)" font-size="10" font-weight="600">Scores</text>
+
+  <!-- Arrow to scale -->
+  <line x1="376" y1="50" x2="406" y2="50" stroke="var(--text3)" stroke-width="1"/>
+  <polygon points="403,46 410,50 403,54" fill="var(--text3)"/>
+  <text x="391" y="42" text-anchor="middle" fill="var(--text3)" font-size="9">&divide; &radic;d</text>
+
+  <!-- Softmax box -->
+  <rect x="412" y="34" width="80" height="32" rx="6" fill="var(--coral-bg)" stroke="var(--coral-border)" stroke-width=".5"/>
+  <text x="452" y="54" text-anchor="middle" fill="var(--coral-text)" font-size="10" font-weight="600">Softmax</text>
+
+  <!-- Arrow from Softmax to second matmul -->
+  <line x1="492" y1="50" x2="526" y2="50" stroke="var(--text3)" stroke-width="1"/>
+  <line x1="538" y1="50" x2="538" y2="108" stroke="var(--text3)" stroke-width="1"/>
+
+  <!-- V arrow right to second matmul point -->
+  <line x1="216" y1="120" x2="526" y2="120" stroke="var(--text3)" stroke-width="1" stroke-dasharray="4 3"/>
+
+  <!-- Second matmul circle -->
+  <circle cx="538" cy="120" r="10" fill="var(--bg)" stroke="var(--teal-border)" stroke-width="1"/>
+  <text x="538" y="124" text-anchor="middle" fill="var(--teal-text)" font-size="10" font-weight="600">&times;</text>
+  <text x="556" y="108" fill="var(--text3)" font-size="9">&times; V</text>
+
+  <!-- Arrow to Output -->
+  <line x1="548" y1="120" x2="580" y2="120" stroke="var(--text3)" stroke-width="1"/>
+  <polygon points="577,116 584,120 577,124" fill="var(--text3)"/>
+
+  <!-- Output box -->
+  <rect x="586" y="104" width="80" height="32" rx="6" fill="var(--teal-bg)" stroke="var(--teal-border)" stroke-width="1"/>
+  <text x="626" y="124" text-anchor="middle" fill="var(--teal-text)" font-size="10" font-weight="600">Output</text>
+
+  <!-- === ROW 3: Step annotations === -->
+
+  <!-- Step 1 -->
+  <rect x="10" y="170" width="210" height="76" rx="8" stroke="var(--blue-border)" stroke-width="1" fill="var(--blue-bg)" fill-opacity=".3"/>
+  <text x="28" y="192" fill="var(--blue-text)" font-size="10" font-weight="600">Step 1: Compare</text>
+  <text x="28" y="210" fill="var(--text2)" font-size="10">Q &times; K&#7488; produces a grid of dot</text>
+  <text x="28" y="226" fill="var(--text2)" font-size="10">products. Each cell measures how</text>
+  <text x="28" y="240" fill="var(--text2)" font-size="9">relevant item j is to item i.</text>
+
+  <!-- Step 2 -->
+  <rect x="235" y="170" width="210" height="76" rx="8" stroke="var(--coral-border)" stroke-width="1" fill="var(--coral-bg)" fill-opacity=".3"/>
+  <text x="253" y="192" fill="var(--coral-text)" font-size="10" font-weight="600">Step 2: Normalize</text>
+  <text x="253" y="210" fill="var(--text2)" font-size="10">Softmax turns each row into</text>
+  <text x="253" y="226" fill="var(--text2)" font-size="10">weights that sum to 1. The model</text>
+  <text x="253" y="240" fill="var(--text2)" font-size="9">decides what to pay attention to.</text>
+
+  <!-- Step 3 -->
+  <rect x="460" y="170" width="210" height="76" rx="8" stroke="var(--teal-border)" stroke-width="1" fill="var(--teal-bg)" fill-opacity=".3"/>
+  <text x="478" y="192" fill="var(--teal-text)" font-size="10" font-weight="600">Step 3: Blend</text>
+  <text x="478" y="210" fill="var(--text2)" font-size="10">Multiply weights by V to get</text>
+  <text x="478" y="226" fill="var(--text2)" font-size="10">a weighted mix of all values.</text>
+  <text x="478" y="240" fill="var(--text2)" font-size="9">Each output carries full context.</text>
+
+  <!-- === ROW 4: Formula === -->
+  <text x="340" y="290" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="600">Attention(Q, K, V) = softmax(Q &times; K&#7488; / &radic;d) &times; V</text>
+  <text x="340" y="310" text-anchor="middle" fill="var(--text3)" font-size="10">Four operations you already understand.</text>
+</svg>
+</div>
+
+<p>
+That is it. Dot products to measure relevance. Matrix multiplication to
+do it in bulk. Softmax to choose. And one more matrix multiply to blend.
+Four operations, and the machine can look at a sequence and decide, for
+each element, what else in that sequence matters.
+</p>
+
+<p>
+This single mechanism, repeated and stacked dozens of times, is the
+heartbeat of every transformer. It is what allows a language model to
+connect "it" back to the noun it refers to, fifteen words earlier. It is
+what lets a vision model look at a patch of sky and know that the color
+is relevant to the airplane flying through it.
+</p>
+
+<p>
+And it is what lets SAM3 take a text prompt like "yellow school bus" and
+connect those words to the right pixels in an image. The words become
+queries. The image patches become keys and values. Attention bridges the
+gap.
+</p>
+
+<h2>How the numbers learn</h2>
+
+<p>
+You might be wondering: who chose those weight matrices? Who decided
+that W_Q should be <code>[[1,0],[2,1]]</code> and not something else?
+</p>
+
+<p>
+Nobody did. The model starts with random numbers. Every value in W_Q,
+W_K, and W_V begins as noise. At first, the attention weights are
+nearly uniform. "Sat" pays equal attention to every word, because the
+random queries and keys have no meaningful relationship. The model
+produces garbage.
+</p>
+
+<p>
+Then training begins. The model reads a sentence and tries to predict
+something, like the next word. It gets it wrong. A loss function
+measures how wrong it was, producing a single number: the error.
+</p>
+
+<p>
+Now the key step: backpropagation traces that error backward through
+every operation, all the way back to the weight matrices. It computes,
+for every single number in W_Q, W_K, and W_V, a gradient: "if this
+number were slightly larger, would the error go up or down?" Then it
+nudges each number a tiny amount in the direction that reduces the
+error. This is gradient descent.
+</p>
+
+<p>
+One sentence changes the weights by almost nothing. But after millions
+of sentences, a pattern emerges. W_K has been shaped so that nouns
+produce keys that match verb queries. Not because anyone programmed
+this rule, but because this pattern reduced errors more than any other.
+</p>
+
+<div class="diagram-section">
+<svg width="100%" viewBox="0 0 520 310">
+  <text x="260" y="16" text-anchor="middle" fill="var(--text2)" font-size="10" font-weight="600">The same model, before and after training</text>
+
+  <!-- LEFT: Before training -->
+  <rect x="10" y="30" width="240" height="230" rx="10" fill="var(--red-bg)" fill-opacity=".3" stroke="var(--red-border)" stroke-width="1"/>
+  <text x="130" y="50" text-anchor="middle" fill="var(--red-text)" font-size="10" font-weight="600">Before training (random W_K)</text>
+
+  <!-- W_K matrix -->
+  <text x="50" y="72" fill="var(--text3)" font-size="9">W_K =</text>
+  <rect x="82" y="62" width="28" height="18" rx="3" fill="var(--bg)" stroke="var(--red-border)" stroke-width=".5"/>
+  <text x="96" y="76" text-anchor="middle" fill="var(--red-text)" font-size="9" font-weight="600">0.2</text>
+  <rect x="112" y="62" width="28" height="18" rx="3" fill="var(--bg)" stroke="var(--red-border)" stroke-width=".5"/>
+  <text x="126" y="76" text-anchor="middle" fill="var(--red-text)" font-size="9" font-weight="600">-0.1</text>
+  <rect x="82" y="82" width="28" height="18" rx="3" fill="var(--bg)" stroke="var(--red-border)" stroke-width=".5"/>
+  <text x="96" y="96" text-anchor="middle" fill="var(--red-text)" font-size="9" font-weight="600">0.3</text>
+  <rect x="112" y="82" width="28" height="18" rx="3" fill="var(--bg)" stroke="var(--red-border)" stroke-width=".5"/>
+  <text x="126" y="96" text-anchor="middle" fill="var(--red-text)" font-size="9" font-weight="600">0.1</text>
+
+  <!-- Scores -->
+  <text x="30" y="124" fill="var(--text3)" font-size="9">Scores for "sat":</text>
+  <rect x="30" y="132" width="36" height="18" rx="3" fill="var(--bg)" stroke="var(--border)" stroke-width=".5"/>
+  <text x="48" y="146" text-anchor="middle" fill="var(--text2)" font-size="9">1.2</text>
+  <rect x="70" y="132" width="36" height="18" rx="3" fill="var(--bg)" stroke="var(--border)" stroke-width=".5"/>
+  <text x="88" y="146" text-anchor="middle" fill="var(--text2)" font-size="9">1.1</text>
+  <rect x="110" y="132" width="36" height="18" rx="3" fill="var(--bg)" stroke="var(--border)" stroke-width=".5"/>
+  <text x="128" y="146" text-anchor="middle" fill="var(--text2)" font-size="9">1.3</text>
+  <text x="48" y="160" text-anchor="middle" fill="var(--text3)" font-size="8">cat</text>
+  <text x="88" y="160" text-anchor="middle" fill="var(--text3)" font-size="8">sat</text>
+  <text x="128" y="160" text-anchor="middle" fill="var(--text3)" font-size="8">mat</text>
+
+  <!-- Softmax -->
+  <text x="30" y="180" fill="var(--text3)" font-size="9">Softmax:</text>
+  <rect x="30" y="186" width="36" height="18" rx="3" fill="var(--bg)" stroke="var(--border)" stroke-width=".5"/>
+  <text x="48" y="200" text-anchor="middle" fill="var(--text2)" font-size="9" font-weight="600">0.33</text>
+  <rect x="70" y="186" width="36" height="18" rx="3" fill="var(--bg)" stroke="var(--border)" stroke-width=".5"/>
+  <text x="88" y="200" text-anchor="middle" fill="var(--text2)" font-size="9" font-weight="600">0.32</text>
+  <rect x="110" y="186" width="36" height="18" rx="3" fill="var(--bg)" stroke="var(--border)" stroke-width=".5"/>
+  <text x="128" y="200" text-anchor="middle" fill="var(--text2)" font-size="9" font-weight="600">0.35</text>
+
+  <!-- Verdict -->
+  <text x="130" y="234" text-anchor="middle" fill="var(--red-text)" font-size="10" font-weight="600">Nearly uniform. No focus.</text>
+  <text x="130" y="250" text-anchor="middle" fill="var(--text3)" font-size="9">"sat" pays equal attention to everything.</text>
+
+  <!-- RIGHT: After training -->
+  <rect x="270" y="30" width="240" height="230" rx="10" fill="var(--green-bg)" fill-opacity=".3" stroke="var(--green-border)" stroke-width="1"/>
+  <text x="390" y="50" text-anchor="middle" fill="var(--green-text)" font-size="10" font-weight="600">After training (learned W_K)</text>
+
+  <!-- W_K matrix -->
+  <text x="310" y="72" fill="var(--text3)" font-size="9">W_K =</text>
+  <rect x="342" y="62" width="28" height="18" rx="3" fill="var(--bg)" stroke="var(--green-border)" stroke-width=".5"/>
+  <text x="356" y="76" text-anchor="middle" fill="var(--green-text)" font-size="9" font-weight="600">3.1</text>
+  <rect x="372" y="62" width="28" height="18" rx="3" fill="var(--bg)" stroke="var(--green-border)" stroke-width=".5"/>
+  <text x="386" y="76" text-anchor="middle" fill="var(--green-text)" font-size="9" font-weight="600">0.8</text>
+  <rect x="342" y="82" width="28" height="18" rx="3" fill="var(--bg)" stroke="var(--green-border)" stroke-width=".5"/>
+  <text x="356" y="96" text-anchor="middle" fill="var(--green-text)" font-size="9" font-weight="600">-0.5</text>
+  <rect x="372" y="82" width="28" height="18" rx="3" fill="var(--bg)" stroke="var(--green-border)" stroke-width=".5"/>
+  <text x="386" y="96" text-anchor="middle" fill="var(--green-text)" font-size="9" font-weight="600">1.2</text>
+
+  <!-- Scores -->
+  <text x="290" y="124" fill="var(--text3)" font-size="9">Scores for "sat":</text>
+  <rect x="290" y="132" width="36" height="18" rx="3" fill="var(--bg)" stroke="var(--border)" stroke-width=".5"/>
+  <text x="308" y="146" text-anchor="middle" fill="var(--text)" font-size="9" font-weight="600">4</text>
+  <rect x="330" y="132" width="36" height="18" rx="3" fill="var(--bg)" stroke="var(--border)" stroke-width=".5"/>
+  <text x="348" y="146" text-anchor="middle" fill="var(--text2)" font-size="9">1</text>
+  <rect x="370" y="132" width="36" height="18" rx="3" fill="var(--bg)" stroke="var(--border)" stroke-width=".5"/>
+  <text x="388" y="146" text-anchor="middle" fill="var(--text2)" font-size="9">2</text>
+  <text x="308" y="160" text-anchor="middle" fill="var(--text3)" font-size="8">cat</text>
+  <text x="348" y="160" text-anchor="middle" fill="var(--text3)" font-size="8">sat</text>
+  <text x="388" y="160" text-anchor="middle" fill="var(--text3)" font-size="8">mat</text>
+
+  <!-- Softmax -->
+  <text x="290" y="180" fill="var(--text3)" font-size="9">Softmax:</text>
+  <rect x="290" y="186" width="36" height="18" rx="3" fill="var(--green-bg)" stroke="var(--green-border)" stroke-width="1.5"/>
+  <text x="308" y="200" text-anchor="middle" fill="var(--green-text)" font-size="9" font-weight="600">0.84</text>
+  <rect x="330" y="186" width="36" height="18" rx="3" fill="var(--bg)" stroke="var(--border)" stroke-width=".5"/>
+  <text x="348" y="200" text-anchor="middle" fill="var(--text2)" font-size="9" font-weight="600">0.04</text>
+  <rect x="370" y="186" width="36" height="18" rx="3" fill="var(--bg)" stroke="var(--border)" stroke-width=".5"/>
+  <text x="388" y="200" text-anchor="middle" fill="var(--text2)" font-size="9" font-weight="600">0.11</text>
+
+  <!-- Verdict -->
+  <text x="390" y="234" text-anchor="middle" fill="var(--green-text)" font-size="10" font-weight="600">Sharp focus on "cat."</text>
+  <text x="390" y="250" text-anchor="middle" fill="var(--text3)" font-size="9">"sat" learned to attend to its subject.</text>
+
+  <!-- Arrow between -->
+  <text x="260" y="160" text-anchor="middle" fill="var(--text3)" font-size="16">&rarr;</text>
+  <text x="260" y="180" text-anchor="middle" fill="var(--text3)" font-size="8">millions of</text>
+  <text x="260" y="190" text-anchor="middle" fill="var(--text3)" font-size="8">sentences</text>
+
+  <!-- Bottom note -->
+  <text x="260" y="290" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="600">The math is the same. Only the numbers inside W_K changed.</text>
+  <text x="260" y="306" text-anchor="middle" fill="var(--text3)" font-size="10">Training is just adjusting weights until the attention pattern is useful.</text>
+</svg>
+</div>
+
+<p>
+The math never changes. The architecture never changes. The only things
+that change during training are the numbers inside the weight matrices.
+And yet, by the end, those numbers encode something that looks
+remarkably like understanding.
+</p>
+
+<h2>What comes next</h2>
+
+<p>
+You now have the vocabulary. Vectors, dot products, matrix
+multiplication, softmax, and attention. These are the atoms. In the next
+chapter, we will see the molecule: the full SAM3 architecture, where
+attention lives inside a vision transformer, fused with a text encoder,
+producing masks that follow any object you can name.
+</p>
+
+</article>
+</main>
+
+<footer>
+<p>
+<a href="01-machines-eyes.html">&larr; Previous: Machine's Eyes</a>
+&nbsp;&middot;&nbsp;
+<a href="../index.html">Home</a>
+&nbsp;&middot;&nbsp;
+<a href="03-what-is-sam3.html">Next: What is SAM3? &rarr;</a>
+</p>
+</footer>
+
+</body>
+</html>

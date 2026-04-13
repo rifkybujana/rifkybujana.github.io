@@ -7,12 +7,13 @@ A minimal personal blog styled after [brandonrohrer.com/blog.html](https://brand
 ## File Structure
 
 ```
-blog.html              # Home page — motto, intro, public projects, learning series index
-machines_eyes.html     # Chapter 1: Machine's Eyes — how machines see images
-what_is_sam3.html      # Chapter 2: What is SAM3? — SAM lineage and architecture overview
+index.html                              # Home page — motto, intro, public projects, learning series index
+sam3/01-machines-eyes.html              # Chapter 1: Machine's Eyes — how machines see images
+sam3/02-the-language-of-numbers.html    # Chapter 2: The Language of Numbers — one-hot, dot product, matmul, softmax, attention
+sam3/03-what-is-sam3.html               # Chapter 3: What is SAM3? — SAM lineage and architecture overview
 ```
 
-All pages are flat static HTML files in the same directory. No CSS framework, no JS. Styles are inlined in each page's `<style>` block.
+All pages are flat static HTML files. No CSS framework, no JS. Styles are inlined in each page's `<style>` block.
 
 ## Design Rules
 
@@ -54,9 +55,10 @@ All pages are flat static HTML files in the same directory. No CSS framework, no
 
 A chapter-by-chapter walkthrough of building SAM3.c from scratch. Current chapters:
 
-1. **Machine's Eyes** (`machines_eyes.html`) — How machines see. Pixels as numbers, filters, edges, objects, segmentation. Done.
-2. **What is SAM3?** (`what_is_sam3.html`) — SAM1 → SAM2 → SAM3 lineage. Text prompts, concept segmentation, architecture overview, motivation for C rewrite. Done.
-3. **Tokenizer: Teaching Machines to Read** — Not yet written. How tokenizers break text into tokens for neural networks.
+1. **Machine's Eyes** (`sam3/01-machines-eyes.html`) — How machines see. Pixels as numbers, filters, edges, objects, segmentation. Done.
+2. **The Language of Numbers** (`sam3/02-the-language-of-numbers.html`) — One-hot encoding, dot products, matrix multiplication, softmax, attention. The math foundations. Done.
+3. **What is SAM3?** (`sam3/03-what-is-sam3.html`) — SAM1 → SAM2 → SAM3 lineage. Text prompts, concept segmentation, architecture overview, motivation for C rewrite. Done.
+4. **Tokenizer: Teaching Machines to Read** — Not yet written. How tokenizers break text into tokens for neural networks.
 
 ## Image Prompts (not yet generated)
 
