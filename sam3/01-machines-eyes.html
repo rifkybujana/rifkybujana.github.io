@@ -17,31 +17,46 @@
 <meta name="twitter:title" content="Machine's Eyes — SAM3 From Scratch">
 <meta name="twitter:description" content="How does a machine see the world? An image is just a grid of numbers, but somewhere between raw pixels and a segmentation mask, a model learns to see. Part of the SAM3 from scratch series.">
 <style>
+  :root {
+    --bg: #ffffff; --bg2: #f7f6f3; --bg3: #eeedeb;
+    --text: #1a1a1a; --text2: #6b6a65; --text3: #9c9a92;
+    --border: #e2e0d8;
+    --blue: #185FA5; --blue-bg: #E6F1FB; --blue-border: #85B7EB; --blue-text: #0C447C;
+    --teal: #0F6E56; --teal-bg: #E1F5EE; --teal-border: #5DCAA5; --teal-text: #085041;
+    --coral: #993C1D; --coral-bg: #FAECE7; --coral-border: #F0997B; --coral-text: #712B13;
+    --purple: #534AB7; --purple-bg: #EEEDFE; --purple-border: #AFA9EC; --purple-text: #3C3489;
+    --green: #3B6D11; --green-bg: #EAF3DE; --green-border: #97C459; --green-text: #27500A;
+    --amber: #854F0B; --amber-bg: #FAEEDA; --amber-border: #EF9F27; --amber-text: #633806;
+    --gray: #5F5E5A; --gray-bg: #F1EFE8; --gray-border: #B4B2A9; --gray-text: #444441;
+    --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+    --sans: "Inter", "Helvetica Neue", system-ui, sans-serif;
+  }
   body {
     font-family: Georgia, 'Times New Roman', serif;
     max-width: 680px;
     margin: 2em auto;
     padding: 0 1.2em;
     line-height: 1.6;
-    color: #222;
-    background: #fff;
+    color: var(--text);
+    background: var(--bg);
   }
   h1 { font-size: 1.6em; margin-bottom: 0.1em; }
   h2 { font-size: 1.25em; margin-top: 2em; }
   p { margin: 0.8em 0; }
   a { color: #1a0dab; }
   a:visited { color: #609; }
-  hr { border: none; border-top: 1px solid #ccc; margin: 2.5em 0; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 2.5em 0; }
   .breadcrumb { font-size: 0.9em; margin-bottom: 1.5em; }
-  .subtitle { color: #555; font-style: italic; }
+  .subtitle { color: var(--text2); font-style: italic; }
   code {
-    font-family: 'Courier New', monospace;
-    background: #f5f5f5;
+    font-family: var(--mono);
+    background: var(--bg2);
     padding: 0.15em 0.35em;
     font-size: 0.9em;
+    border-radius: 3px;
   }
   pre {
-    background: #f5f5f5;
+    background: var(--bg2);
     padding: 1em;
     overflow-x: auto;
     font-size: 0.85em;
@@ -49,6 +64,46 @@
   }
   pre code { background: none; padding: 0; }
   img { max-width: 100%; }
+  .diagram-section { margin: 1.5em 0; }
+  .diagram-section svg text { font-family: var(--mono); }
+  .diagram-caption {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--text3);
+    text-align: center;
+    margin-top: 6px;
+  }
+  .img-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+    margin: 1em 0;
+  }
+  .img-grid img {
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  .img-grid .label {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--text2);
+    text-align: center;
+    margin-top: 6px;
+  }
+  .img-zoom-container {
+    position: relative;
+    display: inline-block;
+  }
+  .img-zoom-container img {
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  @media (max-width: 500px) {
+    .img-grid { grid-template-columns: 1fr; }
+  }
 </style>
 <script type="application/ld+json">
 {
@@ -99,6 +154,107 @@ Everything the machine will ever know about that image has to come
 from those numbers alone.
 </p>
 
+<div class="diagram-section">
+<!-- Photo with zoom region highlighted -->
+<div style="position:relative; max-width:480px; margin:0 auto; overflow:hidden; border-radius:6px; border:1px solid var(--border);">
+  <img src="../assets/cat.png" alt="A Siamese cat sitting on a wooden table" style="width:100%; display:block;">
+  <!-- Highlight rectangle on the cat's face area -->
+  <div style="position:absolute; left:25.5%; top:10%; width:49%; height:85%; border:2px solid #185FA5; border-radius:2px; box-shadow:0 0 0 2000px rgba(0,0,0,0.15);"></div>
+</div>
+<p class="diagram-caption">You see a cat. The machine sees 927 &times; 688 &times; 3 = 1,913,328 numbers.</p>
+
+<!-- Zoomed pixel grid from the cat's face (sampled at 410,210 step 16) -->
+<svg width="100%" viewBox="0 0 680 240" xmlns="http://www.w3.org/2000/svg" style="margin-top:12px;">
+  <text x="340" y="16" font-size="11" font-weight="600" fill="#0C447C" text-anchor="middle">Zoom in. Every pixel is just three numbers.</text>
+
+  <!-- Row 0: sampled from cat face at y=210 -->
+  <rect x="56" y="30" width="86" height="40" rx="2" fill="#481f17" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="99" y="48" font-size="9" fill="#E6F1FB" text-anchor="middle">72, 31, 23</text>
+  <text x="99" y="62" font-size="7" fill="#9c9a92" text-anchor="middle">R &nbsp; G &nbsp; B</text>
+
+  <rect x="146" y="30" width="86" height="40" rx="2" fill="#8c5f45" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="189" y="48" font-size="9" fill="#F1EFE8" text-anchor="middle">140, 95, 69</text>
+  <text x="189" y="62" font-size="7" fill="#c4a497" text-anchor="middle">R &nbsp; G &nbsp; B</text>
+
+  <rect x="236" y="30" width="86" height="40" rx="2" fill="#ac8767" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="279" y="48" font-size="9" fill="#F1EFE8" text-anchor="middle">172, 135, 103</text>
+  <text x="279" y="62" font-size="7" fill="#d5c5b9" text-anchor="middle">R &nbsp; G &nbsp; B</text>
+
+  <rect x="326" y="30" width="86" height="40" rx="2" fill="#9d7453" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="369" y="48" font-size="9" fill="#F1EFE8" text-anchor="middle">157, 116, 83</text>
+  <text x="369" y="62" font-size="7" fill="#c4a497" text-anchor="middle">R &nbsp; G &nbsp; B</text>
+
+  <rect x="416" y="30" width="86" height="40" rx="2" fill="#926649" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="459" y="48" font-size="9" fill="#F1EFE8" text-anchor="middle">146, 102, 73</text>
+  <text x="459" y="62" font-size="7" fill="#c4a497" text-anchor="middle">R &nbsp; G &nbsp; B</text>
+
+  <rect x="506" y="30" width="86" height="40" rx="2" fill="#a69097" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="549" y="48" font-size="9" fill="#F1EFE8" text-anchor="middle">166, 144, 151</text>
+  <text x="549" y="62" font-size="7" fill="#d5c5c9" text-anchor="middle">R &nbsp; G &nbsp; B</text>
+
+  <!-- Row 1: y=226 -->
+  <rect x="56" y="74" width="86" height="40" rx="2" fill="#7f513c" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="99" y="92" font-size="9" fill="#F1EFE8" text-anchor="middle">127, 81, 60</text>
+
+  <rect x="146" y="74" width="86" height="40" rx="2" fill="#a36c44" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="189" y="92" font-size="9" fill="#F1EFE8" text-anchor="middle">163, 108, 68</text>
+
+  <rect x="236" y="74" width="86" height="40" rx="2" fill="#a9805c" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="279" y="92" font-size="9" fill="#F1EFE8" text-anchor="middle">169, 128, 92</text>
+
+  <rect x="326" y="74" width="86" height="40" rx="2" fill="#9d7453" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="369" y="92" font-size="9" fill="#F1EFE8" text-anchor="middle">157, 116, 83</text>
+
+  <rect x="416" y="74" width="86" height="40" rx="2" fill="#926649" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="459" y="92" font-size="9" fill="#F1EFE8" text-anchor="middle">146, 102, 73</text>
+
+  <rect x="506" y="74" width="86" height="40" rx="2" fill="#865840" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="549" y="92" font-size="9" fill="#F1EFE8" text-anchor="middle">134, 88, 64</text>
+
+  <!-- Row 2: y=242 -->
+  <rect x="56" y="118" width="86" height="40" rx="2" fill="#9d7453" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="99" y="136" font-size="9" fill="#F1EFE8" text-anchor="middle">157, 116, 83</text>
+
+  <rect x="146" y="118" width="86" height="40" rx="2" fill="#ac8767" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="189" y="136" font-size="9" fill="#F1EFE8" text-anchor="middle">172, 135, 103</text>
+
+  <rect x="236" y="118" width="86" height="40" rx="2" fill="#a9805c" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="279" y="136" font-size="9" fill="#F1EFE8" text-anchor="middle">169, 128, 92</text>
+
+  <rect x="326" y="118" width="86" height="40" rx="2" fill="#8c5f45" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="369" y="136" font-size="9" fill="#F1EFE8" text-anchor="middle">140, 95, 69</text>
+
+  <rect x="416" y="118" width="86" height="40" rx="2" fill="#8c5f45" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="459" y="136" font-size="9" fill="#F1EFE8" text-anchor="middle">140, 95, 69</text>
+
+  <rect x="506" y="118" width="86" height="40" rx="2" fill="#8c5f45" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="549" y="136" font-size="9" fill="#F1EFE8" text-anchor="middle">140, 95, 69</text>
+
+  <!-- Row 3: y=258 -->
+  <rect x="56" y="162" width="86" height="40" rx="2" fill="#ac8767" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="99" y="180" font-size="9" fill="#F1EFE8" text-anchor="middle">172, 135, 103</text>
+
+  <rect x="146" y="162" width="86" height="40" rx="2" fill="#976d4e" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="189" y="180" font-size="9" fill="#F1EFE8" text-anchor="middle">151, 109, 78</text>
+
+  <rect x="236" y="162" width="86" height="40" rx="2" fill="#9d7453" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="279" y="180" font-size="9" fill="#F1EFE8" text-anchor="middle">157, 116, 83</text>
+
+  <rect x="326" y="162" width="86" height="40" rx="2" fill="#976d4e" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="369" y="180" font-size="9" fill="#F1EFE8" text-anchor="middle">151, 109, 78</text>
+
+  <rect x="416" y="162" width="86" height="40" rx="2" fill="#926649" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="459" y="180" font-size="9" fill="#F1EFE8" text-anchor="middle">146, 102, 73</text>
+
+  <rect x="506" y="162" width="86" height="40" rx="2" fill="#a17a59" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="549" y="180" font-size="9" fill="#F1EFE8" text-anchor="middle">161, 122, 89</text>
+
+  <!-- Annotation -->
+  <text x="340" y="222" font-size="10" fill="#6b6a65" text-anchor="middle" font-family="Inter, Helvetica Neue, system-ui, sans-serif">Each cell is one pixel. Each pixel is three numbers: red, green, blue (0 to 255).</text>
+  <text x="340" y="238" font-size="10" fill="#9c9a92" text-anchor="middle" font-family="Inter, Helvetica Neue, system-ui, sans-serif">The cat's face. No fur, no whiskers. Just numbers.</text>
+</svg>
+</div>
+
 <h2>Run your fingers across the grid</h2>
 
 <p>
@@ -124,6 +280,100 @@ with millions of dots, and no teacher to tell you what the letters
 are. The model has to discover the alphabet on its own.
 </p>
 
+<div class="diagram-section">
+<svg width="100%" viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="340" y="18" font-size="11" font-weight="600" fill="#085041" text-anchor="middle">A filter slides across the grid, looking for edges</text>
+
+  <!-- Input pixel patch (5x5 grayscale values at a sky-trunk boundary) -->
+  <text x="108" y="42" font-size="10" font-weight="600" fill="#6b6a65" text-anchor="middle">Input patch</text>
+  <!-- Row 0 -->
+  <rect x="48" y="50" width="30" height="24" rx="2" fill="#B8D8F0" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="63" y="66" font-size="9" fill="#0C447C" text-anchor="middle">190</text>
+  <rect x="78" y="50" width="30" height="24" rx="2" fill="#B0D4ED" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="93" y="66" font-size="9" fill="#0C447C" text-anchor="middle">186</text>
+  <rect x="108" y="50" width="30" height="24" rx="2" fill="#6B5B43" stroke="#B4B2A9" stroke-width=".5"/>
+  <text x="123" y="66" font-size="9" fill="#F1EFE8" text-anchor="middle">91</text>
+  <rect x="138" y="50" width="30" height="24" rx="2" fill="#5E4F38" stroke="#B4B2A9" stroke-width=".5"/>
+  <text x="153" y="66" font-size="9" fill="#F1EFE8" text-anchor="middle">79</text>
+  <rect x="168" y="50" width="30" height="24" rx="2" fill="#52433A" stroke="#B4B2A9" stroke-width=".5"/>
+  <text x="183" y="66" font-size="9" fill="#F1EFE8" text-anchor="middle">67</text>
+  <!-- Row 1 -->
+  <rect x="48" y="74" width="30" height="24" rx="2" fill="#A8CEE8" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="63" y="90" font-size="9" fill="#0C447C" text-anchor="middle">182</text>
+  <rect x="78" y="74" width="30" height="24" rx="2" fill="#A0C8E4" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="93" y="90" font-size="9" fill="#0C447C" text-anchor="middle">178</text>
+  <rect x="108" y="74" width="30" height="24" rx="2" fill="#6B5B43" stroke="#B4B2A9" stroke-width=".5"/>
+  <text x="123" y="90" font-size="9" fill="#F1EFE8" text-anchor="middle">88</text>
+  <rect x="138" y="74" width="30" height="24" rx="2" fill="#5E4F38" stroke="#B4B2A9" stroke-width=".5"/>
+  <text x="153" y="90" font-size="9" fill="#F1EFE8" text-anchor="middle">75</text>
+  <rect x="168" y="74" width="30" height="24" rx="2" fill="#52433A" stroke="#B4B2A9" stroke-width=".5"/>
+  <text x="183" y="90" font-size="9" fill="#F1EFE8" text-anchor="middle">62</text>
+  <!-- Row 2 -->
+  <rect x="48" y="98" width="30" height="24" rx="2" fill="#98C2E0" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="63" y="114" font-size="9" fill="#0C447C" text-anchor="middle">175</text>
+  <rect x="78" y="98" width="30" height="24" rx="2" fill="#90BCD8" stroke="#85B7EB" stroke-width=".5"/>
+  <text x="93" y="114" font-size="9" fill="#0C447C" text-anchor="middle">170</text>
+  <rect x="108" y="98" width="30" height="24" rx="2" fill="#604F3A" stroke="#B4B2A9" stroke-width=".5"/>
+  <text x="123" y="114" font-size="9" fill="#F1EFE8" text-anchor="middle">85</text>
+  <rect x="138" y="98" width="30" height="24" rx="2" fill="#544630" stroke="#B4B2A9" stroke-width=".5"/>
+  <text x="153" y="114" font-size="9" fill="#F1EFE8" text-anchor="middle">70</text>
+  <rect x="168" y="98" width="30" height="24" rx="2" fill="#4A3C28" stroke="#B4B2A9" stroke-width=".5"/>
+  <text x="183" y="114" font-size="9" fill="#F1EFE8" text-anchor="middle">58</text>
+
+  <!-- Highlight the 3x3 filter window -->
+  <rect x="76" y="48" width="94" height="76" rx="4" fill="none" stroke="#0F6E56" stroke-width="2" stroke-dasharray="5 3"/>
+  <text x="123" y="140" font-size="9" fill="#085041" text-anchor="middle" font-weight="600">3x3 window</text>
+
+  <!-- Arrow -->
+  <line x1="212" y1="86" x2="248" y2="86" stroke="#9c9a92" stroke-width="1"/>
+  <polygon points="248,82 256,86 248,90" fill="#9c9a92"/>
+
+  <!-- 3x3 Filter (vertical edge detector) -->
+  <text x="316" y="42" font-size="10" font-weight="600" fill="#085041" text-anchor="middle">Vertical edge filter</text>
+  <rect x="268" y="50" width="30" height="24" rx="2" fill="#E1F5EE" stroke="#5DCAA5" stroke-width=".5"/>
+  <text x="283" y="66" font-size="10" fill="#085041" text-anchor="middle" font-weight="600">-1</text>
+  <rect x="298" y="50" width="30" height="24" rx="2" fill="#E1F5EE" stroke="#5DCAA5" stroke-width=".5"/>
+  <text x="313" y="66" font-size="10" fill="#085041" text-anchor="middle" font-weight="600">0</text>
+  <rect x="328" y="50" width="30" height="24" rx="2" fill="#E1F5EE" stroke="#5DCAA5" stroke-width=".5"/>
+  <text x="343" y="66" font-size="10" fill="#085041" text-anchor="middle" font-weight="600">+1</text>
+
+  <rect x="268" y="74" width="30" height="24" rx="2" fill="#E1F5EE" stroke="#5DCAA5" stroke-width=".5"/>
+  <text x="283" y="90" font-size="10" fill="#085041" text-anchor="middle" font-weight="600">-1</text>
+  <rect x="298" y="74" width="30" height="24" rx="2" fill="#E1F5EE" stroke="#5DCAA5" stroke-width=".5"/>
+  <text x="313" y="90" font-size="10" fill="#085041" text-anchor="middle" font-weight="600">0</text>
+  <rect x="328" y="74" width="30" height="24" rx="2" fill="#E1F5EE" stroke="#5DCAA5" stroke-width=".5"/>
+  <text x="343" y="90" font-size="10" fill="#085041" text-anchor="middle" font-weight="600">+1</text>
+
+  <rect x="268" y="98" width="30" height="24" rx="2" fill="#E1F5EE" stroke="#5DCAA5" stroke-width=".5"/>
+  <text x="283" y="114" font-size="10" fill="#085041" text-anchor="middle" font-weight="600">-1</text>
+  <rect x="298" y="98" width="30" height="24" rx="2" fill="#E1F5EE" stroke="#5DCAA5" stroke-width=".5"/>
+  <text x="313" y="114" font-size="10" fill="#085041" text-anchor="middle" font-weight="600">0</text>
+  <rect x="328" y="98" width="30" height="24" rx="2" fill="#E1F5EE" stroke="#5DCAA5" stroke-width=".5"/>
+  <text x="343" y="114" font-size="10" fill="#085041" text-anchor="middle" font-weight="600">+1</text>
+
+  <!-- Multiply-add symbol -->
+  <text x="316" y="140" font-size="9" fill="#085041" text-anchor="middle">multiply &amp; sum</text>
+
+  <!-- Equals arrow -->
+  <line x1="368" y1="86" x2="404" y2="86" stroke="#9c9a92" stroke-width="1"/>
+  <polygon points="404,82 412,86 404,90" fill="#9c9a92"/>
+
+  <!-- Result -->
+  <rect x="418" y="60" width="80" height="52" rx="8" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="1"/>
+  <text x="458" y="82" font-size="14" font-weight="600" fill="#085041" text-anchor="middle">-285</text>
+  <text x="458" y="98" font-size="9" fill="#6b6a65" text-anchor="middle">strong edge!</text>
+
+  <!-- Explanation below -->
+  <rect x="48" y="160" width="584" height="106" rx="8" fill="#F7F6F3" stroke="#e2e0d8" stroke-width="1" stroke-dasharray="4 3"/>
+  <text x="64" y="180" font-size="10" font-weight="600" fill="#085041">How it works</text>
+  <text x="64" y="198" font-size="9" fill="#6b6a65">The filter multiplies each number with the pixel underneath, then adds them all up.</text>
+  <text x="64" y="214" font-size="9" fill="#6b6a65">When the left side is bright (high values) and the right side is dark (low values),</text>
+  <text x="64" y="230" font-size="9" fill="#6b6a65">the -1 and +1 columns produce a large negative number. That means: vertical edge here.</text>
+  <text x="64" y="250" font-size="9" fill="#9c9a92">A model learns hundreds of these filters. Each one is sensitive to a different pattern.</text>
+</svg>
+</div>
+
 <h2>Step back</h2>
 
 <p>
@@ -140,6 +390,63 @@ to organize itself this way. It simply emerges, the same way a
 child learns that two eyes and a mouth make a face, not because
 someone explained it, but because they saw enough faces.
 </p>
+
+<div class="diagram-section">
+<svg width="100%" viewBox="0 0 680 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="340" y="18" font-size="11" font-weight="600" fill="#3C3489" text-anchor="middle">What the model discovers, layer by layer</text>
+
+  <!-- Layer 1: Pixels -->
+  <rect x="20" y="40" width="120" height="60" rx="8" fill="#E6F1FB" stroke="#85B7EB" stroke-width="1"/>
+  <text x="80" y="62" font-size="11" font-weight="600" fill="#0C447C" text-anchor="middle">Pixels</text>
+  <text x="80" y="78" font-size="9" fill="#6b6a65" text-anchor="middle">raw numbers</text>
+  <text x="80" y="90" font-size="9" fill="#6b6a65" text-anchor="middle">135, 206, 235 ...</text>
+
+  <!-- Arrow 1 -->
+  <line x1="144" y1="70" x2="170" y2="70" stroke="#9c9a92" stroke-width="1"/>
+  <polygon points="170,66 178,70 170,74" fill="#9c9a92"/>
+
+  <!-- Layer 2: Edges -->
+  <rect x="182" y="40" width="120" height="60" rx="8" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="1"/>
+  <text x="242" y="62" font-size="11" font-weight="600" fill="#085041" text-anchor="middle">Edges</text>
+  <text x="242" y="78" font-size="9" fill="#6b6a65" text-anchor="middle">lines, gradients</text>
+  <text x="242" y="90" font-size="9" fill="#6b6a65" text-anchor="middle">| / \ &#x2014;</text>
+
+  <!-- Arrow 2 -->
+  <line x1="306" y1="70" x2="332" y2="70" stroke="#9c9a92" stroke-width="1"/>
+  <polygon points="332,66 340,70 332,74" fill="#9c9a92"/>
+
+  <!-- Layer 3: Shapes -->
+  <rect x="344" y="40" width="120" height="60" rx="8" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+  <text x="404" y="62" font-size="11" font-weight="600" fill="#3C3489" text-anchor="middle">Shapes</text>
+  <text x="404" y="78" font-size="9" fill="#6b6a65" text-anchor="middle">curves, corners</text>
+  <text x="404" y="90" font-size="9" fill="#6b6a65" text-anchor="middle">circles, rectangles</text>
+
+  <!-- Arrow 3 -->
+  <line x1="468" y1="70" x2="494" y2="70" stroke="#9c9a92" stroke-width="1"/>
+  <polygon points="494,66 502,70 494,74" fill="#9c9a92"/>
+
+  <!-- Layer 4: Objects -->
+  <rect x="506" y="40" width="120" height="60" rx="8" fill="#FAECE7" stroke="#F0997B" stroke-width="1"/>
+  <text x="566" y="62" font-size="11" font-weight="600" fill="#712B13" text-anchor="middle">Objects</text>
+  <text x="566" y="78" font-size="9" fill="#6b6a65" text-anchor="middle">eyes, wheels</text>
+  <text x="566" y="90" font-size="9" fill="#6b6a65" text-anchor="middle">faces, cars</text>
+
+  <!-- Depth labels -->
+  <text x="80" y="118" font-size="9" fill="#9c9a92" text-anchor="middle">early layers</text>
+  <text x="566" y="118" font-size="9" fill="#9c9a92" text-anchor="middle">deep layers</text>
+
+  <!-- Bottom annotation -->
+  <line x1="80" y1="124" x2="566" y2="124" stroke="#e2e0d8" stroke-width=".5" stroke-dasharray="3 3"/>
+  <text x="323" y="148" font-size="10" fill="#6b6a65" text-anchor="middle" font-family="Inter, Helvetica Neue, system-ui, sans-serif">Nobody programs this hierarchy. It emerges from seeing enough examples.</text>
+
+  <!-- Microscope/telescope annotation -->
+  <text x="80" y="172" font-size="9" fill="#0C447C" text-anchor="middle">microscope</text>
+  <text x="566" y="172" font-size="9" fill="#712B13" text-anchor="middle">telescope</text>
+  <line x1="120" y1="169" x2="526" y2="169" stroke="#e2e0d8" stroke-width=".5"/>
+  <polygon points="526,166 534,169 526,172" fill="#e2e0d8"/>
+</svg>
+</div>
 
 <h2>The hardest question</h2>
 
@@ -165,6 +472,28 @@ far enough to understand what it is looking at. That tension, between
 the microscope and the telescope, is what makes segmentation
 beautiful and difficult. It is exactly what SAM was built to solve.
 </p>
+
+<div class="diagram-section">
+<div class="img-grid">
+  <div>
+    <img src="../assets/cat.png" alt="Original photograph of a Siamese cat on a table">
+    <div class="label" style="margin-top:8px; font-weight:600; color:var(--blue-text);">Classification</div>
+    <div class="label">"There is a cat in this image."</div>
+    <div style="text-align:center; margin-top:8px;">
+      <span style="display:inline-block; padding:3px 14px; border-radius:6px; background:var(--blue-bg); border:1px solid var(--blue-border); font-family:var(--mono); font-size:12px; font-weight:600; color:var(--blue-text);">cat: 97%</span>
+    </div>
+  </div>
+  <div>
+    <img src="../assets/overlay_0.png" alt="Same photograph with a blue segmentation mask highlighting the cat">
+    <div class="label" style="margin-top:8px; font-weight:600; color:var(--purple-text);">Segmentation</div>
+    <div class="label">"These pixels are the cat."</div>
+    <div style="text-align:center; margin-top:8px;">
+      <span style="display:inline-block; padding:3px 14px; border-radius:6px; background:var(--purple-bg); border:1px solid var(--purple-border); font-family:var(--mono); font-size:12px; font-weight:600; color:var(--purple-text);">pixel-level mask</span>
+    </div>
+  </div>
+</div>
+<p class="diagram-caption" style="margin-top:12px;">Classification gives one answer per image. Segmentation gives one answer per pixel.</p>
+</div>
 
 <h2>What comes next</h2>
 

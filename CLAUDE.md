@@ -96,7 +96,7 @@ All architecture diagrams and technical documentation pages must follow these ru
 
 - **Minimalist but detailed.** Show the real data: struct fields, tensor shapes, byte offsets, concrete values. Don't simplify away the numbers.
 - **Flat design.** No gradients, no shadows, no blur, no 3D effects. Clean flat surfaces and thin borders.
-- **Dark mode mandatory.** Every color must work in both light and dark mode via CSS variables with `@media (prefers-color-scheme: dark)`.
+- **Light mode only.** No dark mode. Do not include `@media (prefers-color-scheme: dark)` blocks.
 - **Monospace for data, sans-serif for prose.** Code, shapes, field names, hex values use mono. Titles and descriptions use sans.
 - **Dashed boxes for detail breakouts.** When a region needs annotation, use a `1.5px dashed` border box connected by a dashed leader line.
 - **Color encodes category, not decoration.** Each color ramp maps to a semantic domain (e.g. purple = vision backbone, teal = features, coral = fusion). Stay consistent within a document.
@@ -141,7 +141,7 @@ h3 { font-size: 14px; font-weight: 600; margin: 24px 0 4px; }
 
 ### Color System
 
-9 color ramps. Each ramp has 4 CSS variables: `--{name}`, `--{name}-bg`, `--{name}-border`, `--{name}-text`. All auto-swap in dark mode.
+9 color ramps. Each ramp has 4 CSS variables: `--{name}`, `--{name}-bg`, `--{name}-border`, `--{name}-text`. Light mode only.
 
 #### Light mode values
 
@@ -157,23 +157,16 @@ h3 { font-size: 14px; font-weight: 600; margin: 24px 0 4px; }
 | red    | `#FCEBEB` | `#F09595`  | `#791F1F` | `#A32D2D`  | Errors, resets, not-impl     |
 | gray   | `#F1EFE8` | `#B4B2A9`  | `#444441` | `#5F5E5A`  | Neutral, structural, generic |
 
-#### Dark mode example (purple)
-
-```css
-/* light */ --purple-bg:#EEEDFE; --purple-border:#AFA9EC; --purple-text:#3C3489;
-/* dark  */ --purple-bg:#26215C; --purple-border:#534AB7; --purple-text:#CECBF6;
-```
-
 #### Neutral palette
 
 ```css
---bg:     #ffffff / #1a1a1a;
---bg2:    #f7f6f3 / #2c2c2a;
---bg3:    #eeedeb / #3a3a38;
---text:   #1a1a1a / #e8e6df;
---text2:  #6b6a65 / #9c9a92;
---text3:  #9c9a92 / #73726c;
---border: #e2e0d8 / #444441;
+--bg:     #ffffff;
+--bg2:    #f7f6f3;
+--bg3:    #eeedeb;
+--text:   #1a1a1a;
+--text2:  #6b6a65;
+--text3:  #9c9a92;
+--border: #e2e0d8;
 ```
 
 #### Color assignment rules
@@ -316,7 +309,7 @@ Rules: Two weights only (400, 600). Sentence case always. No font-size below 9px
 
 ### Diagram Checklist
 
-1. Dark mode: is every text readable? Are colored fills visible?
+1. Light mode only: no `prefers-color-scheme` media queries.
 2. SVG text: does every `<text>` have an explicit `fill`?
 3. Box sizing: `text_width + 24px < rect_width`?
 4. Arrows: does any cross an unrelated box?
@@ -344,20 +337,5 @@ Rules: Two weights only (400, 600). Sentence case always. No font-size below 9px
   --sans: "Inter", "Helvetica Neue", system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #1a1a1a; --bg2: #2c2c2a; --bg3: #3a3a38;
-    --text: #e8e6df; --text2: #9c9a92; --text3: #73726c;
-    --border: #444441;
-    --purple: #AFA9EC; --purple-bg: #26215C; --purple-border: #534AB7; --purple-text: #CECBF6;
-    --teal: #5DCAA5; --teal-bg: #04342C; --teal-border: #0F6E56; --teal-text: #9FE1CB;
-    --coral: #F0997B; --coral-bg: #4A1B0C; --coral-border: #993C1D; --coral-text: #F5C4B3;
-    --pink: #ED93B1; --pink-bg: #4B1528; --pink-border: #993556; --pink-text: #F4C0D1;
-    --blue: #85B7EB; --blue-bg: #042C53; --blue-border: #185FA5; --blue-text: #B5D4F4;
-    --amber: #EF9F27; --amber-bg: #412402; --amber-border: #854F0B; --amber-text: #FAC775;
-    --green: #97C459; --green-bg: #173404; --green-border: #3B6D11; --green-text: #C0DD97;
-    --red: #F09595; --red-bg: #501313; --red-border: #A32D2D; --red-text: #F7C1C1;
-    --gray: #B4B2A9; --gray-bg: #2C2C2A; --gray-border: #5F5E5A; --gray-text: #D3D1C7;
-  }
-}
+/* No dark mode. Light mode only. */
 ```
