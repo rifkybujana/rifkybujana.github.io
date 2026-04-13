@@ -51,7 +51,7 @@ All pages are flat static HTML files. No CSS framework, no JS. Styles are inline
 3. [Kolosal AI Platform](https://github.com/KolosalAI/kolosal) — Fully local AI runtime in C++. Custom tensor library, inference engine, native UI. Runs on any device.
 4. [IndoBERT QA](https://github.com/rifkybujana/indobert-qa) — IndoBERT Base fine-tuned on translated SQuAD v2.0. SOTA extractive QA for Bahasa Indonesia (2021).
 
-## Learning: SAM3 Series
+## SAM3 From Scratch
 
 A chapter-by-chapter walkthrough of building SAM3.c from scratch. Current chapters:
 
