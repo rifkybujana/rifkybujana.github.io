@@ -40,8 +40,8 @@ All pages are flat static HTML files. No CSS framework, no JS. Styles are inline
 
 - **Name**: Rifky Bujana Bisri
 - **Motto**: Making AI Accessible to Anyone, Anywhere
-- **Company**: Co-founder at Kolosal, Inc. (Delaware) — kolosal.ai
-- **Email**: rifky@kolosal.ai
+- **Company**: None listed publicly (Rifky is exiting Kolosal due to direction misalignment; do not associate him with Kolosal as his employer/affiliation on this site)
+- **Email**: rifky@kolosal.ai (will stop working after Kolosal exit — replacement TBD)
 - **Pitch**: While others were in high school, Rifky built his country's best AI model — now he builds from silicon to shipped product.
 
 ## Public Projects
